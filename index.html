@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>统计计算复习手册 - 开卷速查</title>
+<link rel="stylesheet" href="katex/katex.min.css">
+<script src="katex/katex.min.js"></script>
+<script src="katex/auto-render.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f0;color:#2c2c2c;line-height:1.7;padding:0}
+.header{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:32px 24px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.header h1{font-size:1.6rem;margin-bottom:4px}
+.header p{font-size:.85rem;opacity:.7}
+.toc{max-width:900px;margin:20px auto;background:#fff;border-radius:10px;padding:16px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.toc h2{font-size:1.1rem;margin-bottom:10px;color:#16213e}
+.toc ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:4px 16px}
+.toc a{color:#2563eb;text-decoration:none;font-size:.9rem;padding:2px 0;display:block}
+.toc a:hover{text-decoration:underline}
+.container{max-width:900px;margin:0 auto;padding:16px}
+.chapter{background:#fff;border-radius:10px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.chapter-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;background:#fafaf8;border-bottom:1px solid #eee;user-select:none}
+.chapter-header:hover{background:#f0f0ec}
+.chapter-header .arrow{transition:transform .2s;font-size:.8rem;color:#888}
+.chapter-header.open .arrow{transform:rotate(90deg)}
+.chapter-header h2{font-size:1.15rem;color:#1a1a2e;flex:1}
+.chapter-header .tag{font-size:.7rem;background:#e0e7ff;color:#3b5998;padding:2px 8px;border-radius:10px}
+.chapter-body{display:none;padding:20px}
+.chapter-body.open{display:block}
+.know-box{background:#f0fdf4;border-left:4px solid #22c55e;padding:14px 16px;border-radius:0 8px 8px 0;margin-bottom:18px}
+.know-box h3{font-size:1rem;color:#166534;margin-bottom:8px}
+.know-box ul{padding-left:18px;font-size:.9rem}
+.know-box li{margin-bottom:4px}
+.know-box code{background:#dcfce7;padding:1px 5px;border-radius:3px;font-size:.85rem}
+.formula-box{background:#fefce8;border-left:4px solid #eab308;padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;font-size:.9rem}
+.formula-box .ftitle{font-weight:600;color:#854d0e;margin-bottom:4px}
+.problem{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.prob-header{padding:10px 16px;background:#f8fafc;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.prob-header:hover{background:#f1f5f9}
+.prob-header .arrow{transition:transform .2s;font-size:.7rem;color:#888}
+.prob-header.open .arrow{transform:rotate(90deg)}
+.prob-header h4{font-size:.95rem;color:#334155;flex:1}
+.prob-body{display:none;padding:14px 16px;border-top:1px solid #e5e7eb}
+.prob-body.open{display:block}
+.prob-body h5{font-size:.9rem;color:#1e40af;margin:10px 0 6px;border-bottom:1px solid #dbeafe;padding-bottom:3px}
+.prob-body p,.prob-body li{font-size:.88rem;margin-bottom:4px}
+.prob-body ol,.prob-body ul{padding-left:18px}
+pre.code{background:#1e1e2e;color:#cdd6f4;padding:14px;border-radius:6px;overflow-x:auto;font-size:.82rem;line-height:1.6;margin:8px 0;font-family:"Fira Code","Consolas","Courier New",monospace;white-space:pre-wrap;word-break:break-all}
+pre.code .cm{color:#6c7086;font-style:italic}
+.tip{background:#eff6ff;border-left:4px solid #3b82f6;padding:10px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:.85rem;color:#1e40af}
+.warn{background:#fef2f2;border-left:4px solid #ef4444;padding:10px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:.85rem;color:#991b1b}
+@media(max-width:600px){.toc ul{grid-template-columns:1fr}.container{padding:10px}}
+@media print{.header{position:static}.chapter-body,.prob-body{display:block!important}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>统计计算 - 开卷考试复习手册</h1>
+  <p>基于7份课后作业 | 知识点 + 完整R代码解题 | 离线可用</p>
+</div>
+
+<div class="toc" id="toc">
+  <h2>目录导航</h2>
+  <ul>
+    <li><a href="#ch1">Ch1 R语言基础与数据操作</a></li>
+    <li><a href="#ch2">Ch2 随机变量生成</a></li>
+    <li><a href="#ch3">Ch3 蒙特卡罗积分</a></li>
+    <li><a href="#ch4">Ch4 蒙特卡罗推断</a></li>
+    <li><a href="#ch5">Ch5 Bootstrap与Jackknife</a></li>
+    <li><a href="#ch6">Ch6 数值优化方法</a></li>
+    <li><a href="#ch7">Ch7 MCMC方法</a></li>
+  </ul>
+</div>
+
+<div class="container" id="content">
+<!-- ========== CHAPTER 1 ========== -->
+<div class="chapter" id="ch1">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第1章 R语言基础与数据操作</h2>
+  <span class="tag">6题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>文件读写</b>: <code>write(x, "file.txt")</code> 写入, <code>scan("file.txt")</code> 读入, <code>sink("file.txt")</code> 重定向输出</li>
+  <li><b>CSV读写</b>: <code>read.csv("file.csv")</code> 读CSV, <code>write.csv(df, "file.csv")</code> 写CSV</li>
+  <li><b>向量生成</b>: <code>rep(x, times/each)</code> 重复, <code>seq(from, to, by)</code> 序列, <code>1:n</code> 简单序列</li>
+  <li><b>随机抽样</b>: <code>rgamma(n, shape, scale)</code> Gamma分布抽样; <code>set.seed()</code> 设随机种子</li>
+  <li><b>基本统计量</b>: <code>mean()</code> 均值, <code>sd()</code> 标准差, <code>var()</code> 方差, <code>cor()</code> 相关系数</li>
+  <li><b>绘图</b>: <code>pie()</code> 饼图, <code>barplot()</code> 柱状图, <code>boxplot()</code> 箱线图, <code>qqnorm()/qqline()</code> QQ图</li>
+  <li><b>回归分析</b>: <code>lm(y ~ x)</code> 线性回归, <code>summary()</code> 查看结果, <code>resid()</code> 提取残差</li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">Gamma分布 $X \sim \text{Gamma}(\alpha, \beta)$（shape-scale参数化）</div>
+均值 $E[X] = \alpha\beta$，方差 $\text{Var}(X) = \alpha\beta^2$，标准差 $\text{SD}(X) = \sqrt{\alpha}\,\beta$<br>
+R中: <code>rgamma(n, shape=a, scale=b)</code> 或 <code>rgamma(n, shape=a, rate=1/b)</code>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: write/scan/sink 文件读写</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>创建对象 $x = 1{:}100$，用 <code>write</code> 写入文件，删除 $x$ 再读回；用 <code>sink</code> 将 $x$ 写入文件。</p>
+<h5>知识点</h5>
+<p><code>write()</code> 将向量写入文件；<code>scan()</code> 从文件读回向量；<code>sink()</code> 将后续控制台输出重定向到文件。</p>
+<h5>完整代码</h5>
+<pre class="code"># 方法1: write + scan
+x <- 1:100
+write(x, file = "x.txt")    # 写入文件
+rm(x)                        # 删除对象x
+x <- scan("x.txt")           # 从文件读回
+x
+
+# 方法2: sink重定向
+x <- 1:100
+sink("x.txt")     # 开始重定向: 之后所有输出写入文件
+print(x)           # 必须用print(), 交互模式下直接写x也可以
+sink()             # 关闭重定向, 恢复正常输出</pre>
+<div class="tip"><code>sink()</code> 是"开关"模式：第一次调用开启重定向，第二次调用（无参数）关闭。<code>write()</code> 直接写数据值，<code>sink()</code> 捕获的是 <code>print</code> 输出（带格式）。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: CSV文件读取与数据子集保存</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>读取 "2015city.csv"，将各个地区的居住、教育、交通等分别存储到不同文件。</p>
+<h5>完整代码</h5>
+<pre class="code">data <- read.csv("2015city.csv")
+str(data)   # 查看数据结构
+
+# 假设列名包含"居住","教育文化娱乐","交通通信"等
+# 提取并保存各分项
+write.csv(data[, c("地区", "居住")], "居住.csv", row.names = FALSE)
+write.csv(data[, c("地区", "教育文化娱乐")], "教育.csv", row.names = FALSE)
+write.csv(data[, c("地区", "交通通信")], "交通.csv", row.names = FALSE)</pre>
+<div class="tip"><code>read.csv()</code> 默认 <code>header=TRUE</code>。用 <code>data[, c("列名1","列名2")]</code> 提取子集。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: rep() 和 seq() 创建特定模式向量</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>创建向量：(1) $1\,1\,1\,1\,1\;2\,2\,2\,2\,2\;\cdots\;5\,5\,5\,5\,5$；(2) $1\,2\,3\,4\,5\;1\,2\,3\,4\,5\;\cdots$ 重复5次。</p>
+<h5>关键区别</h5>
+<p><code>rep(x, each=n)</code>：每个元素连续重复 $n$ 次；<code>rep(x, times=n)</code>：整个向量重复 $n$ 次。</p>
+<h5>完整代码</h5>
+<pre class="code"># 向量1: 1 1 1 1 1 2 2 2 2 2 ... 5 5 5 5 5
+v1 <- rep(1:5, each = 5)
+v1
+
+# 向量2: 1 2 3 4 5 1 2 3 4 5 ... (重复5次)
+v2 <- rep(1:5, times = 5)
+v2</pre>
+<div class="warn">易错点：<code>each</code> 和 <code>times</code> 参数搞混！<code>each</code> = 每个元素重复，<code>times</code> = 整体重复。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题4: Gamma分布抽样与基本统计量</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>从 $\text{Gamma}(\text{shape}=2,\;\text{scale}=1)$ 生成100个样本，计算样本均值和样本标准差。</p>
+<h5>完整代码</h5>
+<pre class="code">set.seed(123)  # 设随机种子, 保证可重复
+x <- rgamma(100, shape = 2, scale = 1)
+mean(x)   # 样本均值 (理论值 = shape*scale = 2)
+sd(x)     # 样本标准差 (理论值 = sqrt(shape*scale^2) = sqrt(2) ≈ 1.414)</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题5: 数据可视化（饼图/柱状图/箱线图/回归）</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(a) 上海8项支出饼图；(b) 各地区8项支出柱状图；(c) 31地区总消费箱线图；(d) 食品烟酒 $\sim$ 总消费回归分析 + 残差QQ图。</p>
+<h5>完整代码</h5>
+<pre class="code">data <- read.csv("2015city.csv")
+
+# (a) 上海市饼图
+shanghai <- data[data$地区 == "上海", -1]  # 去掉"地区"列
+pie(as.numeric(shanghai), labels = names(shanghai),
+    main = "上海市城镇居民消费支出构成")
+
+# (b) 柱状图 - 各地区各项支出
+barplot(as.matrix(data[, -1]), beside = TRUE,
+        legend.text = data$地区, main = "各地区消费支出")
+
+# (c) 箱线图
+total <- rowSums(data[, -1])  # 计算每个地区总消费
+boxplot(total, main = "31个地区总消费箱线图")
+
+# (d) 线性回归: 食品烟酒 vs 总消费
+model <- lm(data$食品烟酒 ~ total)
+summary(model)   # 查看回归结果
+# 解读: Coefficients的Estimate(系数), Pr(>|t|)(p值), R-squared(拟合优度)
+
+# 残差QQ图
+r <- resid(model)
+qqnorm(r); qqline(r, col = "red")
+# 点大致在直线上 → 残差近似正态</pre>
+<div class="tip">
+<b><code>summary(lm)</code> 输出怎么读：</b><br>
+- <b>Estimate</b>：回归系数（截距和斜率）<br>
+- <b>Pr(&gt;|t|)</b>：$p$ 值，$&lt; 0.05$ 说明系数显著<br>
+- <b>R-squared</b>：越接近1拟合越好<br>
+- <b>QQ图</b>：点贴近直线 = 残差近似正态
+</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题6: 回归分析与残差诊断</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>对数据进行回归分析，用 <code>summary</code> 显示结果并解读；计算残差做正态QQ图。</p>
+<h5>完整代码</h5>
+<pre class="code"># 建立回归模型
+model <- lm(y ~ x, data = mydata)
+summary(model)
+
+# 残差分析
+e <- resid(model)         # 提取残差
+qqnorm(e, main = "残差QQ图")
+qqline(e, col = "red")
+
+# 判断: 点是否大致沿直线分布
+# 若明显偏离 → 残差不服从正态分布
+shapiro.test(e)  # Shapiro-Wilk检验, p > 0.05 则不拒绝正态假设</pre>
+</div>
+</div>
+
+</div>
+</div>
+<!-- ========== CHAPTER 2 ========== -->
+<div class="chapter" id="ch2">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第2章 随机变量生成</h2>
+  <span class="tag">6题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>逆变换法</b>：若 $U \sim U(0,1)$，则 $X = F^{-1}(U)$ 服从CDF为 $F$ 的分布。步骤：①求CDF ②求逆函数 ③生成 $U$ ④计算 $X=F^{-1}(U)$</li>
+  <li><b>接受-拒绝法</b>：从易抽样的 $g(x)$ 生成候选值，以概率 $\frac{f(x)}{c\,g(x)}$ 接受。$c = \max_x \frac{f(x)}{g(x)}$。适用于密度已知但CDF难求逆的情况</li>
+  <li><b>变换法</b>：利用已知分布间的数学关系。如：若 $Z \sim N(0,1)$，则 $X = e^{\mu + \sigma Z} \sim \text{LN}(\mu, \sigma^2)$</li>
+  <li><b>混合分布</b>：先以概率 $p$ 选择成分，再从该成分抽样。如 $p\,N(0,1) + (1-p)\,N(3,1)$</li>
+  <li><b>多元正态</b>：$\mathbf{X} = \boldsymbol{\mu} + A\mathbf{Z}$，其中 $\mathbf{Z} \sim N(\mathbf{0}, I)$，$\Sigma = AA^\top$。三种分解：Cholesky、特征值、SVD</li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">Pareto$(a, b)$ 分布</div>
+CDF：$F(x) = 1 - \left(\frac{b}{x}\right)^a, \quad x \geq b > 0,\; a > 0$<br>
+逆变换：$F^{-1}(u) = b\,(1-u)^{-1/a}$
+</div>
+
+<div class="formula-box">
+<div class="ftitle">接受-拒绝法框架</div>
+1. 找包络分布 $g(x)$，使得 $f(x) \leq c \cdot g(x)$ 对所有 $x$ 成立<br>
+2. 循环：从 $g(x)$ 抽 $Y$，从 $U(0,1)$ 抽 $U$，若 $U \leq \frac{f(Y)}{c\,g(Y)}$ 则接受 $Y$<br>
+接受率 $= 1/c$，$c$ 越小效率越高
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: 逆变换法 - Pareto分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 推导 $\text{Pareto}(a,b)$ 的逆变换；(2) 生成 $n=1000$ 的 $\text{Pareto}(2,2)$ 样本；(3) 画密度直方图与理论密度对比。</p>
+<h5>推导过程</h5>
+<p>$F(x) = 1 - (b/x)^a$，令 $u = F(x)$，解 $x$：</p>
+<p>$u = 1 - (b/x)^a \;\Rightarrow\; (b/x)^a = 1-u \;\Rightarrow\; x = b\,(1-u)^{-1/a}$</p>
+<h5>完整代码</h5>
+<pre class="code"># Pareto分布的逆变换
+rpareto <- function(n, a, b) {
+  u <- runif(n)
+  x <- b * (1 - u)^(-1/a)   # 逆变换公式
+  return(x)
+}
+
+# 生成Pareto(2,2)样本
+set.seed(123)
+x <- rpareto(1000, a = 2, b = 2)
+
+# Pareto(2,2)的密度函数: f(x) = a*b^a / x^(a+1)
+dpareto <- function(x, a, b) {
+  a * b^a / x^(a + 1)
+}
+
+# 画密度直方图 + 理论密度曲线
+hist(x, breaks = 50, prob = TRUE, xlim = c(2, 20),
+     main = "Pareto(2,2) 逆变换法", xlab = "x")
+curve(dpareto(x, 2, 2), add = TRUE, col = "red", lwd = 2)</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: 逆变换法 - 离散分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 逆变换法生成服从给定分布律的样本；(2) 用 <code>sample</code> 函数；(3) 比较频率与理论概率。</p>
+<h5>知识点</h5>
+<p>离散逆变换：计算累积概率 $F(x_k) = \sum_{i \leq k} p_i$，$U$ 落在哪个区间就取哪个值。</p>
+<h5>完整代码</h5>
+<pre class="code"># 假设分布律: X取0,1,2,3,4, 概率为0.1,0.2,0.2,0.2,0.3
+vals <- 0:4
+probs <- c(0.1, 0.2, 0.2, 0.2, 0.3)
+cp <- cumsum(probs)   # 累积概率: 0.1, 0.3, 0.5, 0.7, 1.0
+
+# (1) 逆变换法
+n <- 1000
+u <- runif(n)
+x1 <- numeric(n)
+for (i in 1:n) {
+  x1[i] <- vals[min(which(u[i] <= cp))]  # U落在哪个区间
+}
+
+# (2) sample函数(更简洁)
+x2 <- sample(vals, size = 1000, replace = TRUE, prob = probs)
+
+# (3) 频数表对比
+tab1 <- table(x1) / n   # 逆变换法的经验概率
+tab2 <- table(x2) / n   # sample的经验概率
+cbind(理论概率 = probs, 逆变换法 = as.numeric(tab1), sample法 = as.numeric(tab2))</pre>
+<div class="tip"><code>sample()</code> 是R内置的离散抽样函数，<code>replace=TRUE</code> 表示有放回抽样。考试中优先用 <code>sample()</code>，代码更短。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: 接受-拒绝法 - Beta分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 写接受-拒绝法生成 $\text{Beta}(a,b)$ 样本的R函数；(2) 生成 $\text{Beta}(3,2)$ 样本；(3) 直方图 + 理论密度。</p>
+<h5>思路</h5>
+<p>$\text{Beta}(a,b)$ 定义在 $[0,1]$ 上。用均匀分布 $U(0,1)$ 做包络，$g(x)=1$，$c = \max_x f(x) = f(\text{mode})$，其中 $\text{mode} = \frac{a-1}{a+b-2}$（要求 $a,b > 1$）。</p>
+<h5>完整代码</h5>
+<pre class="code">rbeta_ar <- function(n, a, b) {
+  # Beta(a,b)密度: f(x) = x^(a-1)*(1-x)^(b-1) / B(a,b)
+  # 包络: g(x)=1 (均匀分布), c = max f(x)
+
+  # 找最大值点: mode = (a-1)/(a+b-2)
+  mode_x <- (a - 1) / (a + b - 2)
+  c <- dbeta(mode_x, a, b)   # c = f(mode)
+
+  samples <- numeric(n)
+  count <- 0
+  while (count < n) {
+    y <- runif(1)           # 从g(x)=Uniform(0,1)抽候选值
+    u <- runif(1)           # 接受概率的随机数
+    if (u <= dbeta(y, a, b) / c) {  # 接受条件
+      count <- count + 1
+      samples[count] <- y
+    }
+  }
+  return(samples)
+}
+
+# 生成Beta(3,2)样本
+set.seed(123)
+x <- rbeta_ar(1000, a = 3, b = 2)
+
+# 直方图 + 理论密度
+hist(x, breaks = 30, prob = TRUE, main = "Beta(3,2) 接受-拒绝法")
+curve(dbeta(x, 3, 2), add = TRUE, col = "red", lwd = 2)</pre>
+<div class="tip">接受率 $= 1/c$。$c$ 越大，拒绝越多，效率越低。选好的包络分布很重要！</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题4: 变换法 - 对数正态分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 写变换法生成 $\text{LN}(\mu, \sigma^2)$ 样本的函数；(2) 生成样本；(3) 直方图 + 密度。</p>
+<h5>核心关系</h5>
+<p>若 $Z \sim N(0,1)$，则 $X = e^{\mu + \sigma Z} \sim \text{LN}(\mu, \sigma^2)$。即：先生成正态，再取指数。</p>
+<h5>完整代码</h5>
+<pre class="code">rlnorm_trans <- function(n, mu, sigma) {
+  z <- rnorm(n)              # 标准正态样本
+  x <- exp(mu + sigma * z)   # 变换为对数正态
+  return(x)
+}
+
+# 生成LN(0,1)样本
+set.seed(123)
+x <- rlnorm_trans(1000, mu = 0, sigma = 1)
+
+# 直方图 + 理论密度
+hist(x, breaks = 50, prob = TRUE, xlim = c(0, 10),
+     main = "对数正态 LN(0,1)")
+curve(dlnorm(x, 0, 1), add = TRUE, col = "red", lwd = 2)</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题5: 混合正态分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>生成1000个服从 $p\,N(0,1) + (1-p)\,N(3,1)$ 的样本，$p = 0.1, 0.3, 0.5, 0.7, 0.9$。</p>
+<h5>思路</h5>
+<p>混合分布 = 先掷"硬币"选成分，再从该成分抽样。</p>
+<h5>完整代码</h5>
+<pre class="code">rmix <- function(n, p) {
+  # 每个样本: 以概率p从N(0,1)抽, 以概率1-p从N(3,1)抽
+  k <- rbinom(n, 1, p)         # k=1选N(0,1), k=0选N(3,1)
+  x <- ifelse(k == 1, rnorm(n, 0, 1), rnorm(n, 3, 1))
+  return(x)
+}
+
+# 对不同p值画密度图
+par(mfrow = c(2, 3))  # 2行3列子图
+for (p in c(0.1, 0.3, 0.5, 0.7, 0.9)) {
+  set.seed(123)
+  x <- rmix(1000, p)
+  hist(x, breaks = 30, prob = TRUE, main = paste("p =", p))
+  # 叠加理论密度
+  curve(p * dnorm(x, 0, 1) + (1 - p) * dnorm(x, 3, 1),
+        add = TRUE, col = "red", lwd = 2)
+}</pre>
+<div class="tip"><code>rbinom(n, 1, p)</code> 生成 $n$ 个0/1值，概率 $p$ 取1 —— 这是选择成分的"硬币"。混合分布在 $p$ 接近0.5时可能呈现双峰。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题6: 多元正态分布 - 三种分解法</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>用Cholesky/特征值/SVD分解，生成200个三维多元正态样本，$\boldsymbol{\mu} = (0,1,2)^\top$，给定协方差矩阵 $\Sigma$。</p>
+<h5>核心公式</h5>
+<p>$\mathbf{X} = \boldsymbol{\mu} + A\mathbf{Z}$，其中 $\mathbf{Z} \sim N(\mathbf{0}, I)$，需要找 $A$ 使得 $AA^\top = \Sigma$。</p>
+<h5>完整代码</h5>
+<pre class="code">mu <- c(0, 1, 2)
+Sigma <- matrix(c(1, -0.5, 0.5,
+                  -0.5, 1, -0.5,
+                  0.5, -0.5, 1), nrow = 3)
+n <- 200; d <- 3
+
+# 生成标准正态矩阵 (n x d)
+Z <- matrix(rnorm(n * d), nrow = n)
+
+# === 方法1: Cholesky分解 ===
+L <- t(chol(Sigma))         # chol()返回上三角R, t()转为下三角L, 使得LL'=Σ
+X1 <- Z %*% t(L)            # 等价于 t(L %*% t(Z))
+X1 <- sweep(X1, 2, mu, "+") # 每列加上均值
+
+# === 方法2: 特征值分解 ===
+eig <- eigen(Sigma)          # Σ = Q Λ Q'
+A2 <- eig$vectors %*% diag(sqrt(eig$values))  # A = Q √Λ
+X2 <- Z %*% t(A2)
+X2 <- sweep(X2, 2, mu, "+")
+
+# === 方法3: SVD分解 ===
+sv <- svd(Sigma)              # Σ = U D V' (对称阵时 U=V)
+A3 <- sv$u %*% diag(sqrt(sv$d))  # A = U √D
+X3 <- Z %*% t(A3)
+X3 <- sweep(X3, 2, mu, "+")
+
+# 画散点图矩阵
+pairs(X1, main = "Cholesky")
+pairs(X2, main = "特征值分解")
+pairs(X3, main = "SVD分解")</pre>
+<div class="tip">
+三种分解本质一样，都是找 $A$ 使 $AA^\top = \Sigma$：<br>
+- <b>Cholesky</b>：$\Sigma = LL^\top$（$L$ 是下三角）— 最快，要求 $\Sigma$ 正定<br>
+- <b>特征值</b>：$\Sigma = Q\Lambda Q^\top$，$A = Q\sqrt{\Lambda}$<br>
+- <b>SVD</b>：$\Sigma = UDV^\top$，对称矩阵时 $U=V=Q$，$A = U\sqrt{D}$
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<!-- ========== CHAPTER 3 ========== -->
+<div class="chapter" id="ch3">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第3章 蒙特卡罗积分</h2>
+  <span class="tag">4题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>基本MC积分</b>：$\theta = \int h(x)\,dx \approx \frac{1}{n}\sum g(X_i)$，本质是用样本均值估计期望</li>
+  <li><b>简单MC</b>：$\int_a^b h(x)\,dx = (b-a)\,E[h(X)]$，$X \sim U(a,b)$。估计：$\hat\theta = \frac{b-a}{n}\sum_{i=1}^n h(X_i)$</li>
+  <li><b>对偶变量法(Antithetic)</b>：用 $U$ 和 $1-U$（对偶）的均值来降低方差。$\hat\theta = \frac{1}{n}\sum \frac{g(U_i)+g(1-U_i)}{2}$</li>
+  <li><b>重要抽样法(Importance Sampling)</b>：$\int h(x)f(x)\,dx = \int \frac{h(x)f(x)}{g(x)}\,g(x)\,dx$，从 $g(x)$ 抽样。估计：$\hat\theta = \frac{1}{n}\sum \frac{h(X_i)f(X_i)}{g(X_i)}$</li>
+  <li><b>方差估计</b>：$\widehat{\text{Var}}(\hat\theta) = S^2 / n$，$S^2$ 是样本方差</li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">MC积分的核心恒等式</div>
+$$\int_a^b h(x)\,dx = (b-a)\,E_U[h(U)], \quad U \sim \text{Uniform}(a,b)$$
+更一般：$\int h(x)f(x)\,dx = E_f[h(X)] \approx \frac{1}{n}\sum_{i=1}^n h(X_i),\; X_i \sim f$
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: 基本MC积分 - $\int_0^{0.5} e^{-x}\,dx$</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>估计 $\theta = \int_0^{0.5} e^{-x}\,dx$。(1) 均匀分布抽样；(2) 指数分布抽样；(3) 比较方差。</p>
+<h5>理论值</h5>
+<p>$\theta = [-e^{-x}]_0^{0.5} = 1 - e^{-0.5} \approx 0.3935$</p>
+
+<h5>完整代码</h5>
+<pre class="code">n <- 10000
+
+# (1) 均匀分布 U(0, 0.5) 抽样
+# θ = ∫_0^{0.5} e^{-x} dx = 0.5 * E[e^{-U}], U ~ U(0,0.5)
+set.seed(123)
+u <- runif(n, 0, 0.5)
+g1 <- exp(-u)
+theta1 <- 0.5 * mean(g1)        # MC估计
+var1 <- 0.5^2 * var(g1) / n     # 方差估计
+cat("均匀抽样: theta =", theta1, ", var =", var1, "\n")
+
+# (2) 指数分布抽样
+# 选 f(x) = e^{-x} / (1-e^{-0.5}), x ∈ [0, 0.5] (截断指数)
+# 逆变换生成截断指数: x = -log(1 - u*(1-exp(-0.5)))
+set.seed(123)
+u2 <- runif(n)
+x2 <- -log(1 - u2 * (1 - exp(-0.5)))
+# h(x)/f(x) = e^{-x} / [e^{-x}/(1-e^{-0.5})] = 1 - e^{-0.5} = 常数!
+g2 <- rep(1 - exp(-0.5), n)
+theta2 <- mean(g2)
+var2 <- var(g2) / n              # 方差为0 (完美匹配)
+cat("指数抽样: theta =", theta2, ", var =", var2, "\n")
+
+# (3) 比较: 指数分布方差为0, 因为被积函数和抽样密度完全匹配</pre>
+<div class="tip">当抽样密度 $g(x)$ 和被积函数 $h(x)$ 的形状越"匹配"，MC估计方差越小。极端情况：$g \propto h$ 时方差为0。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: MC估计正态分布CDF $\Phi(x)$</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 用MC估计 $\Phi(x)$；(2) 与 <code>pnorm</code> 比较；(3) 估计 $\Phi(2)$ 及其方差。</p>
+<h5>思路</h5>
+<p>对 $x > 0$：$\Phi(x) = 0.5 + \int_0^x \varphi(t)\,dt = 0.5 + x\,E[\varphi(xU)]$，$U \sim U(0,1)$，$\varphi$ 为标准正态密度。</p>
+<h5>完整代码</h5>
+<pre class="code">phi_mc <- function(x, n = 10000) {
+  # Φ(x) = 0.5 + ∫_0^x φ(t)dt = 0.5 + x * E[φ(xU)], U ~ U(0,1)
+  u <- runif(n)
+  g <- dnorm(x * u)           # φ(x*u)
+  theta <- x * mean(g)         # ∫_0^x φ(t)dt 的MC估计
+  return(0.5 + theta)
+}
+
+# (2) 与pnorm比较
+x_vals <- seq(0.5, 3, by = 0.5)
+mc_vals <- sapply(x_vals, phi_mc)
+true_vals <- pnorm(x_vals)
+cbind(x = x_vals, MC = round(mc_vals, 4), pnorm = round(true_vals, 4))
+
+# (3) Φ(2)的MC估计和方差
+set.seed(123)
+n <- 10000
+u <- runif(n)
+g <- 2 * dnorm(2 * u)         # x=2时的被积函数值
+theta <- 0.5 + mean(g)
+var_theta <- var(g) / n
+cat("Φ(2) MC估计:", theta, "\n")
+cat("方差:", var_theta, "\n")
+cat("pnorm(2):", pnorm(2), "\n")</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: 对偶变量法 (Antithetic Variates)</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>用对偶变量法估计 $\int_0^1 \frac{e^{-x}}{1+x^2}\,dx$，并计算方差。</p>
+<h5>核心思想</h5>
+<p>若 $g(x)$ 单调，则 $g(U)$ 和 $g(1-U)$ 负相关，$\frac{g(U)+g(1-U)}{2}$ 的方差 $&lt;$ $g(U)$ 的方差。</p>
+<h5>完整代码</h5>
+<pre class="code">n <- 10000
+set.seed(123)
+
+h <- function(x) exp(-x) / (1 + x^2)
+
+# 普通MC
+u <- runif(n)
+theta_mc <- mean(h(u))
+var_mc <- var(h(u)) / n
+
+# 对偶变量法
+u <- runif(n / 2)                           # 只需n/2个
+theta_anti <- mean((h(u) + h(1 - u)) / 2)  # 对偶均值
+var_anti <- var((h(u) + h(1 - u)) / 2) / (n / 2)
+
+cat("普通MC:   theta =", theta_mc,   ", var =", var_mc, "\n")
+cat("对偶变量: theta =", theta_anti, ", var =", var_anti, "\n")
+cat("方差缩减比:", var_mc / var_anti, "\n")</pre>
+<div class="tip">对偶变量法只需一半样本量！关键：用 $U$ 和 $1-U$ 配对。适用于被积函数单调或近似单调的情况。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题4: 重要抽样法 (Importance Sampling)</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>用重要抽样法估计 $\int_1^{+\infty} \frac{x^2}{\sqrt{2\pi}}\,e^{-x^2/2}\,dx$。</p>
+<h5>思路</h5>
+<p>被积函数 $= x^2 \varphi(x)$，积分域 $[1,+\infty)$。选 $g(x)$ 为平移指数分布：$g(x) = e^{-(x-1)}$，$x \geq 1$。从 $g$ 抽样：$Y = 1 + \text{Exp}(1)$。</p>
+<h5>完整代码</h5>
+<pre class="code">n <- 10000
+set.seed(123)
+
+# 目标: ∫_1^∞ x² · φ(x) dx, φ(x) = dnorm(x)
+# 重要性函数 g(x) = e^{-(x-1)}, x ≥ 1
+# 从g抽样: Y = 1 + rexp(n, 1)
+
+y <- 1 + rexp(n, 1)    # 从g(x)抽样, x ≥ 1
+
+# 重要抽样: θ = E_g[h(Y)·f(Y)/g(Y)]
+# 其中 f(Y) = Y² · dnorm(Y), g(Y) = exp(-(Y-1))
+w <- y^2 * dnorm(y) / exp(-(y - 1))
+
+theta <- mean(w)
+var_theta <- var(w) / n
+cat("重要抽样估计:", theta, "\n")
+cat("方差:", var_theta, "\n")
+
+# 验证: 理论值
+true_val <- integrate(function(x) x^2 * dnorm(x), 1, Inf)$value
+cat("理论值:", true_val, "\n")</pre>
+<div class="tip">
+<b>重要抽样的关键：</b>选 $g(x)$ 使得 $f(x)/g(x)$ 尽可能平坦（接近常数），这样方差最小。<br>
+<b>常见的 $g(x)$ 选择：</b>截断正态、指数分布、$t$ 分布（尾部更厚）。
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<!-- ========== CHAPTER 4 ========== -->
+<div class="chapter" id="ch4">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第4章 蒙特卡罗推断（假设检验与置信区间）</h2>
+  <span class="tag">4题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>MC模拟验证统计方法</b>：重复模拟大量样本，检查置信区间覆盖率 / 检验犯错概率是否达标</li>
+  <li><b>截尾均值 (Trimmed Mean)</b>：去掉最大/最小各 $k$ 个观测后的均值。对离群值稳健</li>
+  <li><b>均方误差MSE</b>：$\text{MSE}(\hat\theta) = E[(\hat\theta - \theta)^2] = \text{Var}(\hat\theta) + \text{Bias}^2$。MC估计：$\widehat{\text{MSE}} = \frac{1}{M}\sum_{i=1}^M (\hat\theta_i - \theta)^2$</li>
+  <li><b>置信区间覆盖率</b>：模拟 $M$ 次，统计 $\theta$ 落在CI中的比例。应 $\approx 1-\alpha$</li>
+  <li><b>假设检验的功效 (Power)</b>：$\text{Power} = P(\text{拒绝}H_0 \mid H_1\text{为真})$。MC模拟：从 $H_1$ 下生成数据，统计拒绝比例</li>
+  <li><b>第一类错误 (Type I error)</b>：$P(\text{拒绝}H_0 \mid H_0\text{为真})$，应 $\approx \alpha$</li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">正态总体置信区间</div>
+$\mu$ 的CI（$\sigma^2$ 未知）：$\bar X \pm t_{\alpha/2,\,n-1} \cdot \frac{S}{\sqrt{n}}$<br>
+对数正态 $\text{LN}(\mu,\sigma^2)$：先取对数 $Y = \ln X \sim N(\mu,\sigma^2)$，对 $Y$ 构造 $t$ 区间
+</div>
+
+<div class="formula-box">
+<div class="ftitle">Poisson 参数 $\lambda$ 的近似CI</div>
+大样本：$\bar X \pm z_{\alpha/2} \cdot \sqrt{\bar X / n}$，其中 $\bar X$ 是样本均值
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: MC估计截尾均值的MSE - Cauchy分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>$X_1, \ldots, X_{20}$ 来自标准Cauchy分布，估计截尾均值 $\bar X_{[-k]}$ 在 $k=1,\ldots,9$ 时的MSE。</p>
+<h5>知识点</h5>
+<p>Cauchy分布没有有限均值，所以普通均值不好用。截尾均值更稳健。标准Cauchy的中位数 $= 0$（即location参数）。</p>
+<h5>完整代码</h5>
+<pre class="code">n <- 20
+M <- 10000  # MC模拟次数
+theta <- 0  # Cauchy(0,1)的location参数=0
+
+mse <- numeric(9)
+for (k in 1:9) {
+  tmeans <- numeric(M)
+  for (i in 1:M) {
+    x <- rcauchy(n, location = 0, scale = 1)
+    x_sorted <- sort(x)
+    # 截尾均值: 去掉最小k个和最大k个
+    tmeans[i] <- mean(x_sorted[(k + 1):(n - k)])
+  }
+  mse[k] <- mean((tmeans - theta)^2)  # MSE = E[(θ̂-θ)²]
+}
+
+# 结果
+data.frame(k = 1:9, MSE = round(mse, 4))
+plot(1:9, mse, type = "b", xlab = "k", ylab = "MSE",
+     main = "截尾均值的MSE vs k")
+
+# 结论: MSE在某个k处最小(通常k=5~7附近)
+# 截尾比例越大越稳健, 但损失效率</pre>
+<div class="tip">也可以用 <code>mean(x, trim = k/n)</code> 来计算截尾均值，<code>trim</code> 参数是截尾比例（0到0.5）。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: MC验证置信区间 - 对数正态分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 构造 $\text{LN}(\mu,\sigma^2)$ 中参数 $\mu$ 的 $1-\alpha$ 置信区间；(2) MC模拟验证覆盖率。</p>
+<h5>推导</h5>
+<p>$X \sim \text{LN}(\mu,\sigma^2) \;\Rightarrow\; Y = \ln X \sim N(\mu,\sigma^2)$。对 $Y$ 用 $t$ 区间：$\bar Y \pm t_{\alpha/2,\,n-1} \cdot \frac{S_Y}{\sqrt{n}}$</p>
+<h5>完整代码</h5>
+<pre class="code">n <- 20; mu <- 0; sigma <- 1; alpha <- 0.05
+M <- 10000
+
+# MC验证覆盖率
+count <- 0
+for (i in 1:M) {
+  x <- rlnorm(n, meanlog = mu, sdlog = sigma)
+  y <- log(x)                # 取对数变成正态
+  ybar <- mean(y)
+  s <- sd(y)
+  t_crit <- qt(1 - alpha/2, df = n - 1)
+  lower <- ybar - t_crit * s / sqrt(n)
+  upper <- ybar + t_crit * s / sqrt(n)
+  if (lower <= mu && mu <= upper) count <- count + 1
+}
+
+coverage <- count / M
+cat("经验覆盖率:", coverage, "\n")
+cat("名义水平:", 1 - alpha, "\n")
+# 覆盖率应接近0.95</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: MC验证置信区间 - Poisson分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 构造 $\text{Poisson}(\lambda)$ 的近似CI；(2) MC验证。</p>
+<h5>推导</h5>
+<p>大样本近似：$\bar X \;\dot\sim\; N\!\left(\lambda,\,\frac{\lambda}{n}\right)$，CI：$\bar X \pm z_{\alpha/2}\sqrt{\bar X / n}$</p>
+<h5>完整代码</h5>
+<pre class="code">n <- 20; lambda <- 2; alpha <- 0.05
+M <- 10000
+
+count <- 0
+for (i in 1:M) {
+  x <- rpois(n, lambda)
+  xbar <- mean(x)
+  z <- qnorm(1 - alpha/2)     # z_{0.025} ≈ 1.96
+  se <- sqrt(xbar / n)         # 标准误, 用X̄代替λ
+  lower <- xbar - z * se
+  upper <- xbar + z * se
+  if (lower <= lambda && lambda <= upper) count <- count + 1
+}
+
+coverage <- count / M
+cat("经验覆盖率:", coverage, "\n")
+# n小时覆盖率可能偏低(大样本近似不够好)</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题4: MC计算 $t$ 检验的功效 (Power)</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>$X_1,\ldots,X_{20} \sim N(\mu, \sigma^2)$，检验 $H_0{:}\;\mu=500$ vs $H_1{:}\;\mu \neq 500$。MC计算 $t$ 检验的经验第一类错误率和功效。</p>
+<h5>完整代码</h5>
+<pre class="code">n <- 20; alpha <- 0.05; M <- 10000
+sigma <- 100
+
+# (1) 第一类错误率 (在H0: μ=500下模拟)
+reject0 <- 0
+for (i in 1:M) {
+  x <- rnorm(n, mean = 500, sd = sigma)
+  t_stat <- (mean(x) - 500) / (sd(x) / sqrt(n))
+  if (abs(t_stat) > qt(1 - alpha/2, df = n - 1)) {
+    reject0 <- reject0 + 1
+  }
+}
+cat("经验第一类错误率:", reject0 / M, "\n")  # 应≈0.05
+
+# (2) 功效 (在H1: μ=某个备择值下模拟)
+mu_alt <- c(450, 460, 470, 480, 490, 510, 520, 530, 540, 550)
+power <- numeric(length(mu_alt))
+for (j in seq_along(mu_alt)) {
+  reject <- 0
+  for (i in 1:M) {
+    x <- rnorm(n, mean = mu_alt[j], sd = sigma)
+    t_stat <- (mean(x) - 500) / (sd(x) / sqrt(n))
+    if (abs(t_stat) > qt(1 - alpha/2, df = n - 1)) {
+      reject <- reject + 1
+    }
+  }
+  power[j] <- reject / M
+}
+
+# 功效曲线
+plot(mu_alt, power, type = "b", xlab = "真实μ", ylab = "Power",
+     main = "t检验功效曲线")
+abline(h = alpha, lty = 2, col = "red")  # α水平线</pre>
+<div class="tip">
+<b>功效 (Power)</b> $= P(\text{拒绝}H_0 \mid H_1\text{为真})$。$\mu$ 离500越远，power越高。<br>
+<b>第一类错误率</b> $= P(\text{拒绝}H_0 \mid H_0\text{为真})$，应控制在 $\alpha$ 附近。
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<!-- ========== CHAPTER 5 ========== -->
+<div class="chapter" id="ch5">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第5章 Bootstrap与Jackknife</h2>
+  <span class="tag">3题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>Jackknife</b>：逐一去掉第 $i$ 个观测，计算"留一"统计量 $\hat\theta_{(i)}$。用于估计偏差和标准差</li>
+  <li><b>Jackknife偏差</b>：$\widehat{\text{bias}}_{\text{jack}} = (n-1)(\bar\theta_{(\cdot)} - \hat\theta)$，其中 $\bar\theta_{(\cdot)} = \frac{1}{n}\sum \hat\theta_{(i)}$</li>
+  <li><b>Jackknife标准差</b>：$\widehat{\text{se}}_{\text{jack}} = \sqrt{\frac{n-1}{n}\sum_{i=1}^n (\hat\theta_{(i)} - \bar\theta_{(\cdot)})^2}$</li>
+  <li><b>Bootstrap</b>：从原样本有放回抽样 $B$ 次，每次算统计量。用 $B$ 个统计量估计分布</li>
+  <li><b>Bootstrap偏差</b>：$\widehat{\text{bias}}_{\text{boot}} = \bar\theta^* - \hat\theta$（Bootstrap均值 - 原始估计）</li>
+  <li><b>Bootstrap CI</b>：<br>
+    - 标准正态：$\hat\theta \pm z_{\alpha/2} \cdot \widehat{\text{se}}_{\text{boot}}$<br>
+    - 基本 (Basic)：$(2\hat\theta - \theta^*_{1-\alpha/2},\; 2\hat\theta - \theta^*_{\alpha/2})$<br>
+    - 百分位数 (Percentile)：$(\theta^*_{\alpha/2},\; \theta^*_{1-\alpha/2})$<br>
+    - Bootstrap-$t$：$\hat\theta - t^*_{1-\alpha/2}\cdot\widehat{\text{se}},\;\hat\theta - t^*_{\alpha/2}\cdot\widehat{\text{se}}$（需嵌套Bootstrap估计se）</li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">Jackknife公式速查</div>
+偏差：$\widehat{\text{bias}} = (n-1)(\bar\theta_{(\cdot)} - \hat\theta)$<br>
+标准差：$\widehat{\text{se}} = \sqrt{\frac{n-1}{n}\sum_{i=1}^n (\hat\theta_{(i)} - \bar\theta_{(\cdot)})^2}$<br>
+其中 $\hat\theta_{(i)}$ 是去掉第 $i$ 个后的估计，$\bar\theta_{(\cdot)} = \frac{1}{n}\sum \hat\theta_{(i)}$
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: Jackknife估计偏差和标准差 - 相关系数</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>法学院数据 (LSAT, GPA)，(1) 计算相关系数 $\hat\rho$；(2) Jackknife偏差；(3) Jackknife标准差。</p>
+<h5>完整代码</h5>
+<pre class="code">library(bootstrap)  # 需要安装: install.packages("bootstrap")
+data(law)
+n <- nrow(law)      # n=15
+
+# (1) 相关系数估计
+theta_hat <- cor(law$LSAT, law$GPA)
+cat("相关系数:", theta_hat, "\n")
+
+# (2)(3) Jackknife
+theta_jack <- numeric(n)
+for (i in 1:n) {
+  theta_jack[i] <- cor(law$LSAT[-i], law$GPA[-i])  # 去掉第i个
+}
+
+# 偏差
+theta_bar <- mean(theta_jack)
+bias_jack <- (n - 1) * (theta_bar - theta_hat)
+cat("Jackknife偏差:", bias_jack, "\n")
+
+# 标准差
+se_jack <- sqrt((n - 1) / n * sum((theta_jack - theta_bar)^2))
+cat("Jackknife标准差:", se_jack, "\n")</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: Bootstrap $t$ 置信区间 - 相关系数</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>对相关系数 $\hat\rho$ 给出 Bootstrap $t$ 置信区间。</p>
+<h5>思路</h5>
+<p>Bootstrap-$t$ 需要：外层Bootstrap算 $\theta^*_b$，内层嵌套Bootstrap算 $\widehat{\text{se}}^*_b$。构造 $t^*_b = \frac{\theta^*_b - \hat\theta}{\widehat{\text{se}}^*_b}$。</p>
+<h5>完整代码</h5>
+<pre class="code">library(bootstrap)
+data(law)
+n <- nrow(law)
+B <- 2000          # 外层Bootstrap次数
+B2 <- 200          # 内层Bootstrap次数(估计se)
+alpha <- 0.05
+
+theta_hat <- cor(law$LSAT, law$GPA)
+
+# 用Jackknife估计原始se
+theta_jack <- numeric(n)
+for (i in 1:n) theta_jack[i] <- cor(law$LSAT[-i], law$GPA[-i])
+se_hat <- sqrt((n - 1) / n * sum((theta_jack - mean(theta_jack))^2))
+
+# 外层Bootstrap
+t_star <- numeric(B)
+for (b in 1:B) {
+  idx <- sample(1:n, n, replace = TRUE)
+  theta_b <- cor(law$LSAT[idx], law$GPA[idx])
+
+  # 内层Bootstrap: 估计se*
+  theta_b2 <- numeric(B2)
+  for (b2 in 1:B2) {
+    idx2 <- sample(idx, n, replace = TRUE)
+    theta_b2[b2] <- cor(law$LSAT[idx2], law$GPA[idx2])
+  }
+  se_star <- sd(theta_b2)
+
+  t_star[b] <- (theta_b - theta_hat) / se_star
+}
+
+# Bootstrap-t置信区间
+# CI = (θ̂ - t*_{1-α/2} · se, θ̂ - t*_{α/2} · se)
+t_lower <- quantile(t_star, alpha / 2)
+t_upper <- quantile(t_star, 1 - alpha / 2)
+ci <- c(theta_hat - t_upper * se_hat, theta_hat - t_lower * se_hat)
+cat("Bootstrap-t 95% CI:", ci, "\n")</pre>
+<div class="warn">注意 Bootstrap-$t$ 的CI公式中上下分位数是反过来的！下界用 $t^*_{1-\alpha/2}$，上界用 $t^*_{\alpha/2}$。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: Bootstrap估计 - 指数分布故障率</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>空调故障间隔数据，假设 $\sim \text{Exp}(\lambda)$。(1) $\lambda$ 的MLE；(2) Bootstrap偏差和标准差；(3) $1/\lambda$ 的三种Bootstrap CI。</p>
+<h5>知识点</h5>
+<p>$\text{Exp}(\lambda)$ 的MLE：$\hat\lambda = 1/\bar X$。故障间隔均值 $= 1/\lambda$。</p>
+<h5>完整代码</h5>
+<pre class="code">library(boot)
+data(aircondit)
+x <- aircondit$hours
+n <- length(x)    # n=12
+
+# (1) MLE
+lambda_hat <- 1 / mean(x)
+cat("λ的MLE:", lambda_hat, "\n")
+cat("1/λ的MLE (均值):", mean(x), "\n")
+
+# (2) Bootstrap偏差和标准差
+B <- 10000
+lambda_boot <- numeric(B)
+for (b in 1:B) {
+  x_b <- sample(x, n, replace = TRUE)
+  lambda_boot[b] <- 1 / mean(x_b)
+}
+bias_boot <- mean(lambda_boot) - lambda_hat
+se_boot <- sd(lambda_boot)
+cat("Bootstrap偏差:", bias_boot, "\n")
+cat("Bootstrap标准差:", se_boot, "\n")
+
+# (3) 1/λ 的Bootstrap CI
+mean_boot <- numeric(B)
+for (b in 1:B) {
+  x_b <- sample(x, n, replace = TRUE)
+  mean_boot[b] <- mean(x_b)
+}
+mean_hat <- mean(x)
+
+# 标准正态CI: θ̂ ± z·se
+z <- qnorm(0.975)
+ci_norm <- c(mean_hat - z * sd(mean_boot), mean_hat + z * sd(mean_boot))
+
+# 百分位数CI: 直接取Bootstrap分位数
+ci_perc <- quantile(mean_boot, c(0.025, 0.975))
+
+# 基本CI (Basic): (2θ̂ - θ*_{0.975}, 2θ̂ - θ*_{0.025})
+ci_basic <- c(2 * mean_hat - quantile(mean_boot, 0.975),
+              2 * mean_hat - quantile(mean_boot, 0.025))
+
+cat("标准正态CI:", ci_norm, "\n")
+cat("百分位数CI:", ci_perc, "\n")
+cat("基本CI:", ci_basic, "\n")</pre>
+<div class="tip">
+<b>三种Bootstrap CI对比：</b><br>
+- 标准正态：$\hat\theta \pm z \cdot \text{se}$ — 最简单，假设对称<br>
+- 百分位数：直接取Bootstrap分位数 — 直观，自动处理偏斜<br>
+- 基本 (Basic)：$2\hat\theta - \theta^*$ 分位数 — 对偏差做镜像修正
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<!-- ========== CHAPTER 6 ========== -->
+<div class="chapter" id="ch6">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第6章 数值优化方法</h2>
+  <span class="tag">3题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>二分法 (Bisection)</b>：求 $f(x)=0$ 的根。条件：$f$ 在 $[a,b]$ 连续且 $f(a)f(b) &lt; 0$。每次取中点，缩小一半区间。R: <code>uniroot()</code></li>
+  <li><b>Brent法</b>：改进的二分法，结合逆二次插值加速。R中 <code>uniroot()</code> 默认就是Brent法</li>
+  <li><b>一维优化</b>：R中 <code>optimize(f, interval, maximum=TRUE/FALSE)</code></li>
+  <li><b>Newton法求极值</b>：$x_{n+1} = x_n - \frac{f'(x_n)}{f''(x_n)}$。需要一阶和二阶导数</li>
+  <li><b>MLE</b>：极大似然估计 = 最大化对数似然函数。R中 <code>mle()</code> 或 <code>optim()</code></li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">Newton迭代公式</div>
+求 $f(x)$ 的极值（令 $f'=0$）：$x_{n+1} = x_n - \dfrac{f'(x_n)}{f''(x_n)}$<br>
+求 $f(x)=0$ 的根（Newton-Raphson）：$x_{n+1} = x_n - \dfrac{f(x_n)}{f'(x_n)}$
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: 求解方程 $x^3 - 2x - 5 = 0$</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 二分法；(2) Brent法。</p>
+<h5>完整代码</h5>
+<pre class="code">f <- function(x) x^3 - 2*x - 5
+
+# (1) 手写二分法
+bisection <- function(f, a, b, tol = 1e-8, maxiter = 1000) {
+  for (i in 1:maxiter) {
+    mid <- (a + b) / 2
+    if (abs(f(mid)) < tol || (b - a) / 2 < tol) {
+      return(list(root = mid, iter = i))
+    }
+    if (f(a) * f(mid) < 0) {
+      b <- mid        # 根在左半区间
+    } else {
+      a <- mid        # 根在右半区间
+    }
+  }
+  return(list(root = mid, iter = maxiter))
+}
+
+# 先确认f(a)和f(b)异号
+f(1)   # 1-2-5 = -6 < 0
+f(3)   # 27-6-5 = 16 > 0
+result1 <- bisection(f, 1, 3)
+cat("二分法: root =", result1$root, ", 迭代次数:", result1$iter, "\n")
+
+# (2) Brent法 (R内置uniroot)
+result2 <- uniroot(f, c(1, 3))
+cat("Brent法: root =", result2$root, "\n")</pre>
+<div class="tip"><code>uniroot()</code> 是R内置求根函数，底层用Brent法。只需提供函数和区间 $[a,b]$，要求 $f(a) \cdot f(b) &lt; 0$。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: 求极值 $f(x) = -x^2 + x + \tfrac{1}{4}$</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) 一维优化方法；(2) Newton法。</p>
+<h5>分析</h5>
+<p>$f'(x) = -2x + 1$，$f''(x) = -2$。令 $f'=0$：$x = \frac{1}{2}$，最大值 $f\!\left(\frac{1}{2}\right) = \frac{1}{2}$。</p>
+<h5>完整代码</h5>
+<pre class="code">f <- function(x) -x^2 + x + 1/4
+
+# (1) optimize() 一维优化
+result1 <- optimize(f, interval = c(-10, 10), maximum = TRUE)
+cat("optimize: x =", result1$maximum, ", f(x) =", result1$objective, "\n")
+
+# (2) Newton法
+f_prime  <- function(x) -2*x + 1    # 一阶导
+f_double <- function(x) -2          # 二阶导
+
+newton_opt <- function(x0, tol = 1e-8, maxiter = 100) {
+  x <- x0
+  for (i in 1:maxiter) {
+    x_new <- x - f_prime(x) / f_double(x)  # Newton迭代
+    if (abs(x_new - x) < tol) {
+      return(list(x = x_new, iter = i, value = f(x_new)))
+    }
+    x <- x_new
+  }
+  return(list(x = x, iter = maxiter, value = f(x)))
+}
+
+result2 <- newton_opt(x0 = 0)  # 初始点x0=0
+cat("Newton: x =", result2$x, ", f(x) =", result2$value,
+    ", 迭代:", result2$iter, "\n")</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: MLE - Poisson分布参数估计</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>$x_1,\ldots,x_n$ 来自 $\text{Poisson}(\lambda)$，用 <code>mle()</code> 函数求 $\lambda$ 的MLE。</p>
+<h5>知识点</h5>
+<p>Poisson对数似然：$\ell(\lambda) = \sum_{i=1}^n (x_i \ln\lambda - \lambda - \ln x_i!)$。MLE解析解：$\hat\lambda = \bar X$。</p>
+<h5>完整代码</h5>
+<pre class="code">library(stats4)  # mle()在stats4包中
+
+# 生成Poisson样本
+set.seed(123)
+x <- rpois(100, lambda = 3)  # 真实λ=3
+
+# 定义负对数似然函数 (mle最小化, 所以取负)
+nll <- function(lambda) {
+  -sum(dpois(x, lambda, log = TRUE))   # -log L
+}
+
+# 用mle()求解
+fit <- mle(nll, start = list(lambda = 1))  # 需给初始值
+summary(fit)
+
+# 提取MLE
+coef(fit)   # 应接近3
+
+# 验证: 解析解
+cat("解析MLE (X̄):", mean(x), "\n")</pre>
+<div class="tip">
+<b><code>mle()</code> 使用要点：</b><br>
+1. 传入<b>负</b>对数似然函数（因为 <code>mle</code> 做最小化）<br>
+2. <code>start</code> 参数给初始值<br>
+3. <code>dpois(..., log=TRUE)</code> 比 <code>log(dpois(...))</code> 数值更稳定
+</div>
+</div>
+</div>
+
+</div>
+</div>
+<!-- ========== CHAPTER 7 ========== -->
+<div class="chapter" id="ch7">
+<div class="chapter-header">
+  <span class="arrow">&#9654;</span>
+  <h2>第7章 MCMC方法 (Markov Chain Monte Carlo)</h2>
+  <span class="tag">3题</span>
+</div>
+<div class="chapter-body">
+
+<div class="know-box">
+<h3>核心知识点</h3>
+<ul>
+  <li><b>Metropolis-Hastings (MH) 算法</b>：从目标分布 $f(x)$ 抽样的通用方法。核心：提议 + 接受/拒绝</li>
+  <li><b>MH步骤</b>：①从提议分布 $g(Y|X_t)$ 生成候选 $Y$；②计算接受概率 $\alpha(X_t,Y) = \min\!\left\{1,\;\frac{f(Y)\,g(X_t|Y)}{f(X_t)\,g(Y|X_t)}\right\}$；③以概率 $\alpha$ 接受 $Y$，否则 $X_{t+1}=X_t$</li>
+  <li><b>Metropolis算法</b>：MH特例，要求 $g(Y|X) = g(X|Y)$（对称提议）。此时 $\alpha = \min\!\left\{1,\;\frac{f(Y)}{f(X_t)}\right\}$</li>
+  <li><b>独立抽样 (Independence Sampler)</b>：提议分布 $g(Y)$ 不依赖当前状态。$\alpha = \min\!\left\{1,\;\frac{f(Y)\,g(X_t)}{f(X_t)\,g(Y)}\right\}$</li>
+  <li><b>Burn-in</b>：丢弃链初始部分（还未到达平稳分布）。通常丢弃前10%-50%</li>
+  <li><b>链的诊断</b>：看 trace plot（轨迹图），接受率（理想20%-50%），自相关图</li>
+</ul>
+</div>
+
+<div class="formula-box">
+<div class="ftitle">MH接受概率</div>
+一般MH：$\alpha(X,Y) = \min\!\left\{1,\;\dfrac{f(Y)\,g(X|Y)}{f(X)\,g(Y|X)}\right\}$<br><br>
+对称提议 (Metropolis)：$\alpha(X,Y) = \min\!\left\{1,\;\dfrac{f(Y)}{f(X)}\right\}$<br><br>
+独立抽样：$\alpha(X,Y) = \min\!\left\{1,\;\dfrac{f(Y)\,g(X)}{f(X)\,g(Y)}\right\}$
+</div>
+
+<div class="formula-box">
+<div class="ftitle">Rayleigh分布</div>
+$$f(x;\sigma) = \frac{x}{\sigma^2}\,\exp\!\left(-\frac{x^2}{2\sigma^2}\right), \quad x \geq 0$$
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题1: MH方法抽样 - Rayleigh分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>(1) $\sigma=2$，用MH从Rayleigh分布抽样；(2) 与 $\sigma=4$ 的例子比较。</p>
+<h5>完整代码</h5>
+<pre class="code"># Rayleigh密度
+drayleigh <- function(x, sigma) {
+  if (x < 0) return(0)
+  (x / sigma^2) * exp(-x^2 / (2 * sigma^2))
+}
+
+# MH抽样器 (提议分布: χ²(df=X_t))
+mh_rayleigh <- function(n, sigma, x0 = 1, burn = 1000) {
+  chain <- numeric(n + burn)
+  chain[1] <- x0
+  accept <- 0
+
+  for (t in 2:(n + burn)) {
+    xt <- chain[t - 1]
+    # 提议: Y ~ χ²(df = round(xt))
+    y <- rchisq(1, df = max(1, round(xt)))
+
+    # 接受概率 (非对称提议, 用完整MH公式)
+    num <- drayleigh(y, sigma) * dchisq(xt, df = max(1, round(y)))
+    den <- drayleigh(xt, sigma) * dchisq(y, df = max(1, round(xt)))
+
+    alpha <- min(1, num / den)
+
+    if (runif(1) <= alpha) {
+      chain[t] <- y
+      accept <- accept + 1
+    } else {
+      chain[t] <- xt
+    }
+  }
+
+  cat("接受率:", accept / (n + burn), "\n")
+  return(chain[(burn + 1):(n + burn)])  # 去掉burn-in
+}
+
+# (1) σ=2
+set.seed(123)
+x1 <- mh_rayleigh(10000, sigma = 2)
+
+# (2) σ=4
+set.seed(123)
+x2 <- mh_rayleigh(10000, sigma = 4)
+
+# 画图比较
+par(mfrow = c(2, 2))
+plot(x1, type = "l", main = "Trace: σ=2", ylab = "x")
+plot(x2, type = "l", main = "Trace: σ=4", ylab = "x")
+hist(x1, breaks = 50, prob = TRUE, main = "σ=2")
+curve(drayleigh(x, 2), add = TRUE, col = "red", lwd = 2)
+hist(x2, breaks = 50, prob = TRUE, main = "σ=4")
+curve(drayleigh(x, 4), add = TRUE, col = "red", lwd = 2)</pre>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题2: MH方法 - Gamma提议分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>提议分布 $g(\cdot|X_t) = \text{Gamma}(X_t, 1)$，用MH从Rayleigh分布抽样，与题1比较。</p>
+<h5>完整代码</h5>
+<pre class="code">mh_rayleigh_gamma <- function(n, sigma, x0 = 1, burn = 1000) {
+  chain <- numeric(n + burn)
+  chain[1] <- x0
+  accept <- 0
+
+  for (t in 2:(n + burn)) {
+    xt <- chain[t - 1]
+    # 提议: Y ~ Gamma(shape=xt, rate=1)
+    y <- rgamma(1, shape = max(0.1, xt), rate = 1)
+
+    # 接受概率
+    num <- drayleigh(y, sigma) * dgamma(xt, shape = max(0.1, y), rate = 1)
+    den <- drayleigh(xt, sigma) * dgamma(y, shape = max(0.1, xt), rate = 1)
+
+    if (den > 0) {
+      alpha <- min(1, num / den)
+    } else {
+      alpha <- 1
+    }
+
+    if (runif(1) <= alpha) {
+      chain[t] <- y
+      accept <- accept + 1
+    } else {
+      chain[t] <- xt
+    }
+  }
+
+  cat("接受率:", accept / (n + burn), "\n")
+  return(chain[(burn + 1):(n + burn)])
+}
+
+set.seed(123)
+x3 <- mh_rayleigh_gamma(10000, sigma = 2)
+
+# 比较: trace plot + 直方图
+par(mfrow = c(1, 2))
+plot(x3, type = "l", main = "Gamma提议, σ=2")
+hist(x3, breaks = 50, prob = TRUE, main = "Gamma提议")
+curve(drayleigh(x, 2), add = TRUE, col = "red", lwd = 2)</pre>
+<div class="tip">提议分布的选择影响接受率和混合速度。好的提议：接受率在20%-50%，trace plot混合好（无长时间"卡住"）。</div>
+</div>
+</div>
+
+<div class="problem">
+<div class="prob-header"><span class="arrow">&#9654;</span><h4>题3: MCMC - 标准Cauchy分布</h4></div>
+<div class="prob-body">
+<h5>题目</h5>
+<p>生成平稳分布为标准Cauchy的Markov链：$f(x) = \frac{1}{\pi(1+x^2)}$。(1) Metropolis方法；(2) 独立抽样；(3) 比较。</p>
+<h5>完整代码</h5>
+<pre class="code"># 目标: 标准Cauchy分布
+dcauchy_target <- function(x) 1 / (pi * (1 + x^2))
+
+# === (1) Metropolis方法 ===
+# 对称提议: Y = X_t + ε, ε ~ N(0, σ²_prop)
+metropolis_cauchy <- function(n, sigma_prop = 1, x0 = 0, burn = 1000) {
+  chain <- numeric(n + burn)
+  chain[1] <- x0
+  accept <- 0
+
+  for (t in 2:(n + burn)) {
+    xt <- chain[t - 1]
+    y <- rnorm(1, mean = xt, sd = sigma_prop)  # 对称提议
+
+    # Metropolis: α = min(1, f(Y)/f(X_t))
+    alpha <- min(1, dcauchy_target(y) / dcauchy_target(xt))
+
+    if (runif(1) <= alpha) {
+      chain[t] <- y
+      accept <- accept + 1
+    } else {
+      chain[t] <- xt
+    }
+  }
+  cat("Metropolis 接受率:", accept / (n + burn), "\n")
+  return(chain[(burn + 1):(n + burn)])
+}
+
+# === (2) 独立抽样方法 ===
+# 提议分布g(x): 标准正态N(0,1)
+indep_cauchy <- function(n, x0 = 0, burn = 1000) {
+  chain <- numeric(n + burn)
+  chain[1] <- x0
+  accept <- 0
+
+  for (t in 2:(n + burn)) {
+    xt <- chain[t - 1]
+    y <- rnorm(1)   # 独立提议, 不依赖X_t
+
+    # 独立抽样: α = min{1, f(Y)g(X_t) / [f(X_t)g(Y)]}
+    alpha <- min(1, (dcauchy_target(y) * dnorm(xt)) /
+                    (dcauchy_target(xt) * dnorm(y)))
+
+    if (runif(1) <= alpha) {
+      chain[t] <- y
+      accept <- accept + 1
+    } else {
+      chain[t] <- xt
+    }
+  }
+  cat("独立抽样 接受率:", accept / (n + burn), "\n")
+  return(chain[(burn + 1):(n + burn)])
+}
+
+# 生成样本
+set.seed(123)
+x_metro <- metropolis_cauchy(10000)
+x_indep <- indep_cauchy(10000)
+
+# (3) 比较
+par(mfrow = c(2, 2))
+plot(x_metro, type = "l", main = "Metropolis 轨迹")
+plot(x_indep, type = "l", main = "独立抽样 轨迹")
+hist(x_metro, breaks = 50, prob = TRUE, xlim = c(-10, 10), main = "Metropolis")
+curve(dcauchy_target(x), add = TRUE, col = "red", lwd = 2)
+hist(x_indep, breaks = 50, prob = TRUE, xlim = c(-10, 10), main = "独立抽样")
+curve(dcauchy_target(x), add = TRUE, col = "red", lwd = 2)</pre>
+<div class="warn">
+<b>独立抽样的陷阱：</b>用正态做Cauchy的提议分布效果不好！因为正态尾部比Cauchy薄（正态 $\sim e^{-x^2/2}$ vs Cauchy $\sim 1/x^2$），导致极端值区域接受率低，链容易"卡住"。<br>
+<b>Metropolis随机游走</b>通常表现更好，因为它是局部探索，不受尾部问题影响。
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+document.addEventListener('click', function(e){
+  const ch = e.target.closest('.chapter-header');
+  if(ch){ ch.classList.toggle('open'); ch.nextElementSibling.classList.toggle('open'); }
+  const pr = e.target.closest('.prob-header');
+  if(pr){ pr.classList.toggle('open'); pr.nextElementSibling.classList.toggle('open'); }
+});
+window.addEventListener('beforeprint',()=>{
+  document.querySelectorAll('.chapter-header,.prob-header').forEach(h=>h.classList.add('open'));
+  document.querySelectorAll('.chapter-body,.prob-body').forEach(b=>b.classList.add('open'));
+});
+document.addEventListener("DOMContentLoaded", function(){
+  renderMathInElement(document.body, {
+    delimiters: [
+      {left: "$$", right: "$$", display: true},
+      {left: "$", right: "$", display: false}
+    ],
+    ignoredTags: ["script","noscript","style","textarea","pre","code"]
+  });
+});
+</script>
+</body>
+</html>
