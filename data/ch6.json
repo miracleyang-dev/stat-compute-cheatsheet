@@ -1,0 +1,45 @@
+{
+  "id": "ch6",
+  "title": "第 6 章 数值优化方法",
+  "tag": "3 题",
+  "knowledge": [
+    "<b>二分法（Bisection）</b>：求 $f(x)=0$ 的根。条件：$f$ 在 $[a,b]$ 连续且 $f(a)f(b) &lt; 0$。每次取中点，缩小一半区间。R：<code>uniroot()</code>",
+    "<b>Brent 法</b>：改进的二分法，结合逆二次插值加速。R 中 <code>uniroot()</code> 默认就是 Brent 法",
+    "<b>一维优化</b>：R 中 <code>optimize(f, interval, maximum=TRUE/FALSE)</code>",
+    "<b>Newton 法求极值</b>：$x_{n+1} = x_n - \\frac{f'(x_n)}{f''(x_n)}$。需要一阶和二阶导数",
+    "<b>MLE</b>：极大似然估计 = 最大化对数似然函数。R 中 <code>mle()</code> 或 <code>optim()</code>"
+  ],
+  "formulas": [
+    {
+      "title": "Newton 迭代公式",
+      "body": "求 $f(x)$ 的极值（令 $f'=0$）：$x_{n+1} = x_n - \\dfrac{f'(x_n)}{f''(x_n)}$<br>求 $f(x)=0$ 的根（Newton-Raphson）：$x_{n+1} = x_n - \\dfrac{f(x_n)}{f'(x_n)}$"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：求解方程 $x^3 - 2x - 5 = 0$",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 二分法；(2) Brent 法。</p>" },
+        { "type": "代码", "code": "f <- function(x) x^3 - 2 * x - 5\n\n# (1) 手写二分法\nbisection <- function(f, a, b, tol = 1e-8, maxiter = 1000) {\n  for (i in 1:maxiter) {\n    mid <- (a + b) / 2\n    if (abs(f(mid)) < tol || (b - a) / 2 < tol) {\n      return(list(root = mid, iter = i))\n    }\n    if (f(a) * f(mid) < 0) {\n      b <- mid       # 根在左半区间\n    } else {\n      a <- mid       # 根在右半区间\n    }\n  }\n  return(list(root = mid, iter = maxiter))\n}\n\n# 先确认 f(a) 和 f(b) 异号\nf(1)   # 1 - 2 - 5 = -6 < 0\nf(3)   # 27 - 6 - 5 = 16 > 0\nresult1 <- bisection(f, 1, 3)\ncat(\"二分法：root =\", result1$root, \"，迭代次数：\", result1$iter, \"\\n\")\n\n# (2) Brent 法（R 内置 uniroot）\nresult2 <- uniroot(f, c(1, 3))\ncat(\"Brent 法：root =\", result2$root, \"\\n\")" },
+        { "type": "提示", "html": "<code>uniroot()</code> 是 R 内置求根函数，底层用 Brent 法。只需提供函数和区间 $[a,b]$，要求 $f(a) \\cdot f(b) &lt; 0$。" }
+      ]
+    },
+    {
+      "title": "题 2：求极值 $f(x) = -x^2 + x + \\tfrac{1}{4}$",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 一维优化方法；(2) Newton 法。</p>" },
+        { "type": "推导", "html": "<p>$f'(x) = -2x + 1$，$f''(x) = -2$。令 $f'=0$：$x = \\frac{1}{2}$，最大值 $f\\!\\left(\\frac{1}{2}\\right) = \\frac{1}{2}$。</p>" },
+        { "type": "代码", "code": "f <- function(x) -x^2 + x + 1/4\n\n# (1) optimize() 一维优化\nresult1 <- optimize(f, interval = c(-10, 10), maximum = TRUE)\ncat(\"optimize：x =\", result1$maximum, \"，f(x) =\", result1$objective, \"\\n\")\n\n# (2) Newton 法\nf_prime  <- function(x) -2 * x + 1   # 一阶导\nf_double <- function(x) -2           # 二阶导\n\nnewton_opt <- function(x0, tol = 1e-8, maxiter = 100) {\n  x <- x0\n  for (i in 1:maxiter) {\n    x_new <- x - f_prime(x) / f_double(x)   # Newton 迭代\n    if (abs(x_new - x) < tol) {\n      return(list(x = x_new, iter = i, value = f(x_new)))\n    }\n    x <- x_new\n  }\n  return(list(x = x, iter = maxiter, value = f(x)))\n}\n\nresult2 <- newton_opt(x0 = 0)   # 初始点 x0 = 0\ncat(\"Newton：x =\", result2$x, \"，f(x) =\", result2$value,\n    \"，迭代：\", result2$iter, \"\\n\")" }
+      ]
+    },
+    {
+      "title": "题 3：MLE — Poisson 分布参数估计",
+      "sections": [
+        { "type": "题目", "html": "<p>$x_1,\\ldots,x_n$ 来自 $\\text{Poisson}(\\lambda)$，用 <code>mle()</code> 函数求 $\\lambda$ 的 MLE。</p>" },
+        { "type": "知识点", "html": "<p>Poisson 对数似然：$\\ell(\\lambda) = \\sum_{i=1}^n (x_i \\ln\\lambda - \\lambda - \\ln x_i!)$。MLE 解析解：$\\hat\\lambda = \\bar X$。</p>" },
+        { "type": "代码", "code": "library(stats4)   # mle() 在 stats4 包中\n\n# 生成 Poisson 样本\nset.seed(123)\nx <- rpois(100, lambda = 3)   # 真实 λ = 3\n\n# 定义负对数似然函数（mle 最小化，所以取负）\nnll <- function(lambda) {\n  -sum(dpois(x, lambda, log = TRUE))   # -log L\n}\n\n# 用 mle() 求解\nfit <- mle(nll, start = list(lambda = 1))   # 需给初始值\nsummary(fit)\n\n# 提取 MLE\ncoef(fit)         # 应接近 3\n\n# 验证：解析解\ncat(\"解析 MLE（X̄）：\", mean(x), \"\\n\")" },
+        { "type": "提示", "html": "<b><code>mle()</code> 使用要点：</b><br>1. 传入<b>负</b>对数似然函数（因为 <code>mle</code> 做最小化）<br>2. <code>start</code> 参数给初始值<br>3. <code>dpois(..., log=TRUE)</code> 比 <code>log(dpois(...))</code> 数值更稳定" }
+      ]
+    }
+  ]
+}

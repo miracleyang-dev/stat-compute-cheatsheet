@@ -1,0 +1,51 @@
+{
+  "id": "ch5",
+  "title": "第 5 章 Bootstrap 与 Jackknife",
+  "tag": "3 题",
+  "knowledge": [
+    "<b>Jackknife</b>：逐一去掉第 $i$ 个观测，计算\"留一\"统计量 $\\hat\\theta_{(i)}$。用于估计偏差和标准差",
+    "<b>Jackknife 偏差</b>：$\\widehat{\\text{bias}}_{\\text{jack}} = (n-1)(\\bar\\theta_{(\\cdot)} - \\hat\\theta)$，其中 $\\bar\\theta_{(\\cdot)} = \\frac{1}{n}\\sum \\hat\\theta_{(i)}$",
+    "<b>Jackknife 标准差</b>：$\\widehat{\\text{se}}_{\\text{jack}} = \\sqrt{\\frac{n-1}{n}\\sum_{i=1}^n (\\hat\\theta_{(i)} - \\bar\\theta_{(\\cdot)})^2}$",
+    "<b>Bootstrap</b>：从原样本有放回抽样 $B$ 次，每次算统计量。用 $B$ 个统计量估计分布",
+    "<b>Bootstrap 偏差</b>：$\\widehat{\\text{bias}}_{\\text{boot}} = \\bar\\theta^* - \\hat\\theta$（Bootstrap 均值 - 原始估计）",
+    "<b>Bootstrap CI</b>：标准正态 $\\hat\\theta \\pm z_{\\alpha/2}\\widehat{\\text{se}}_{\\text{boot}}$；基本 (Basic) $(2\\hat\\theta - \\theta^*_{1-\\alpha/2},\\;2\\hat\\theta - \\theta^*_{\\alpha/2})$；百分位数 $(\\theta^*_{\\alpha/2},\\;\\theta^*_{1-\\alpha/2})$；Bootstrap-$t$（需嵌套 Bootstrap 估计 se）"
+  ],
+  "formulas": [
+    {
+      "title": "Jackknife 公式速查",
+      "body": "偏差：$\\widehat{\\text{bias}} = (n-1)(\\bar\\theta_{(\\cdot)} - \\hat\\theta)$<br>标准差：$\\widehat{\\text{se}} = \\sqrt{\\frac{n-1}{n}\\sum_{i=1}^n (\\hat\\theta_{(i)} - \\bar\\theta_{(\\cdot)})^2}$<br>其中 $\\hat\\theta_{(i)}$ 是去掉第 $i$ 个后的估计，$\\bar\\theta_{(\\cdot)} = \\frac{1}{n}\\sum \\hat\\theta_{(i)}$"
+    },
+    {
+      "title": "Bootstrap 公式速查（重点补充）",
+      "body": "设原样本 $\\hat\\theta$，对样本有放回抽 $B$ 次得到 $\\hat\\theta^*_1,\\ldots,\\hat\\theta^*_B$，记 $\\bar\\theta^* = \\frac{1}{B}\\sum_{b=1}^B \\hat\\theta^*_b$。<br><br><b>Bootstrap 偏差</b>：$\\widehat{\\text{bias}}_{\\text{boot}} = \\bar\\theta^* - \\hat\\theta$<br><br><b>Bootstrap 标准误 (SE)</b>：$$\\widehat{\\text{se}}_{\\text{boot}} = \\sqrt{\\frac{1}{B-1}\\sum_{b=1}^B \\left(\\hat\\theta^*_b - \\bar\\theta^*\\right)^2} = \\text{sd}(\\hat\\theta^*_{1:B})$$即直接对 $B$ 个 bootstrap 重复估计取样本标准差，R 中 <code>sd(theta_boot)</code> 即可。<br><br><b>三种 Bootstrap CI</b>（置信度 $1-\\alpha$，$\\theta^*_q$ 表示 bootstrap 分布的 $q$ 分位数）：<br>&nbsp;&nbsp;• 标准正态：$\\hat\\theta \\pm z_{1-\\alpha/2}\\cdot\\widehat{\\text{se}}_{\\text{boot}}$<br>&nbsp;&nbsp;• 百分位数：$(\\theta^*_{\\alpha/2},\\;\\theta^*_{1-\\alpha/2})$<br>&nbsp;&nbsp;• 基本 (Basic)：$(2\\hat\\theta - \\theta^*_{1-\\alpha/2},\\;2\\hat\\theta - \\theta^*_{\\alpha/2})$"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：Jackknife 估计偏差和标准差 — 相关系数",
+      "sections": [
+        { "type": "题目", "html": "<p>法学院数据 (LSAT, GPA)，(1) 计算相关系数 $\\hat\\rho$；(2) Jackknife 偏差；(3) Jackknife 标准差。</p>" },
+        { "type": "代码", "code": "library(bootstrap)   # 需要安装：install.packages(\"bootstrap\")\ndata(law)\nn <- nrow(law)       # n = 15\n\n# (1) 相关系数估计\ntheta_hat <- cor(law$LSAT, law$GPA)\ncat(\"相关系数：\", theta_hat, \"\\n\")\n\n# (2)(3) Jackknife\ntheta_jack <- numeric(n)\nfor (i in 1:n) {\n  theta_jack[i] <- cor(law$LSAT[-i], law$GPA[-i])   # 去掉第 i 个\n}\n\n# 偏差\ntheta_bar <- mean(theta_jack)\nbias_jack <- (n - 1) * (theta_bar - theta_hat)\ncat(\"Jackknife 偏差：\", bias_jack, \"\\n\")\n\n# 标准差\nse_jack <- sqrt((n - 1) / n * sum((theta_jack - theta_bar)^2))\ncat(\"Jackknife 标准差：\", se_jack, \"\\n\")" }
+      ]
+    },
+    {
+      "title": "题 2：Bootstrap-$t$ 置信区间 — 相关系数（封装函数风格）",
+      "sections": [
+        { "type": "题目", "html": "<p>对相关系数 $\\hat\\rho$ 给出 Bootstrap-$t$ 置信区间，封装为通用函数 <code>boot.t.ci(x, B, R, level, statistic)</code>。</p>" },
+        { "type": "推导", "html": "<p>Bootstrap-$t$ 需要：外层 Bootstrap 算 $\\theta^*_b$，内层嵌套 Bootstrap 算 $\\widehat{\\text{se}}^*_b$。构造 $t^*_b = \\frac{\\theta^*_b - \\hat\\theta}{\\widehat{\\text{se}}^*_b}$，再用其分位数倒推 CI。</p>" },
+        { "type": "代码", "code": "library(bootstrap)\nset.seed(1234)\ndata(law)\n\n# === 通用 boot.t.ci 函数 ===\nboot.t.ci <- function(x, B = 500, R = 100, level = 0.95, statistic) {\n  x <- as.matrix(x)\n  n <- nrow(x)\n  stat <- rep(0, B)\n  se   <- rep(0, B)\n\n  # 内层 Bootstrap：估计单个样本的 SE\n  boot.se <- function(x, R, f) {\n    x <- as.matrix(x); m <- nrow(x)\n    th <- replicate(R, expr = {\n      i <- sample(1:m, size = m, replace = TRUE)\n      f(x[i, ])\n    })\n    return(sd(th))\n  }\n\n  # 外层 Bootstrap\n  for (b in 1:B) {\n    j <- sample(1:n, size = n, replace = TRUE)\n    y <- x[j, ]\n    stat[b] <- statistic(y)\n    se[b]   <- boot.se(y, R = R, f = statistic)\n  }\n\n  stat0 <- statistic(x)\n  se0   <- sd(stat)\n  t.stats <- (stat - stat0) / se\n  alpha <- 1 - level\n  Qt <- quantile(t.stats, c(alpha / 2, 1 - alpha / 2), type = 1)\n\n  # CI 公式：lower = θ̂ - t^*_{1-α/2} · se，upper = θ̂ - t^*_{α/2} · se\n  # 因此分位数上下界要\"反过来\"使用 —— 下面的 rev() 即为此目的：\n  # rev(stat0 - Qt * se0) 把 (高分位结果, 低分位结果) 翻转为 (lower, upper)。\n  names(Qt) <- rev(names(Qt))\n  CI <- rev(stat0 - Qt * se0)\n  return(CI)\n}\n\n# === 应用：相关系数的 Bootstrap-t CI ===\nx <- cbind(law$LSAT, law$GPA)\nfunc_stat <- function(x) cor(x[, 1], x[, 2])\n\nci <- boot.t.ci(x, B = 2000, R = 200, statistic = func_stat)\nprint(ci)" },
+        { "type": "易错点", "html": "注意 Bootstrap-$t$ CI 公式中上下分位数是<b>反过来</b>的（代码里用 <code>rev()</code> 实现）：下界用 $t^*_{1-\\alpha/2}$，上界用 $t^*_{\\alpha/2}$。" },
+        { "type": "提示", "html": "<code>boot.t.ci</code> 设计为通用接口：传入数据矩阵 <code>x</code> 与统计量函数 <code>statistic</code> 即可。适用于任意标量统计量（均值、相关、回归系数等）。" }
+      ]
+    },
+    {
+      "title": "题 3：Bootstrap 估计 — 指数分布故障率",
+      "sections": [
+        { "type": "题目", "html": "<p>空调故障间隔数据，假设 $\\sim \\text{Exp}(\\lambda)$。(1) $\\lambda$ 的 MLE；(2) Bootstrap 偏差和标准差；(3) $1/\\lambda$ 的三种 Bootstrap CI。</p>" },
+        { "type": "知识点", "html": "<p>$\\text{Exp}(\\lambda)$ 的 MLE：$\\hat\\lambda = 1/\\bar X$。故障间隔均值 $= 1/\\lambda$。</p>" },
+        { "type": "代码", "code": "library(boot)\ndata(aircondit)\nx <- aircondit$hours\nn <- length(x)     # n = 12\n\n# (1) MLE\nlambda_hat <- 1 / mean(x)\ncat(\"λ 的 MLE：\",        lambda_hat, \"\\n\")\ncat(\"1/λ 的 MLE（均值）：\", mean(x),  \"\\n\")\n\n# (2) Bootstrap 偏差和标准差\nB <- 10000\nlambda_boot <- numeric(B)\nfor (b in 1:B) {\n  x_b <- sample(x, n, replace = TRUE)\n  lambda_boot[b] <- 1 / mean(x_b)\n}\nbias_boot <- mean(lambda_boot) - lambda_hat\nse_boot   <- sd(lambda_boot)\ncat(\"Bootstrap 偏差：\",   bias_boot, \"\\n\")\ncat(\"Bootstrap 标准差：\", se_boot,   \"\\n\")\n\n# (3) 1/λ 的 Bootstrap CI\nmean_boot <- numeric(B)\nfor (b in 1:B) {\n  x_b <- sample(x, n, replace = TRUE)\n  mean_boot[b] <- mean(x_b)\n}\nmean_hat <- mean(x)\n\n# 标准正态 CI：θ̂ ± z · se\nz <- qnorm(0.975)\nci_norm <- c(mean_hat - z * sd(mean_boot),\n             mean_hat + z * sd(mean_boot))\n\n# 百分位数 CI：直接取 Bootstrap 分位数\nci_perc <- quantile(mean_boot, c(0.025, 0.975))\n\n# 基本 CI（Basic）：(2θ̂ - θ^*_{0.975}, 2θ̂ - θ^*_{0.025})\nci_basic <- c(2 * mean_hat - quantile(mean_boot, 0.975),\n              2 * mean_hat - quantile(mean_boot, 0.025))\n\ncat(\"标准正态 CI：\", ci_norm,  \"\\n\")\ncat(\"百分位数 CI：\", ci_perc,  \"\\n\")\ncat(\"基本 CI：\",     ci_basic, \"\\n\")" },
+        { "type": "提示", "html": "<b>三种 Bootstrap CI 对比：</b><br>- 标准正态：$\\hat\\theta \\pm z \\cdot \\text{se}$ —— 最简单，假设对称<br>- 百分位数：直接取 Bootstrap 分位数 —— 直观，自动处理偏斜<br>- 基本（Basic）：$2\\hat\\theta - \\theta^*$ 分位数 —— 对偏差做镜像修正" }
+      ]
+    }
+  ]
+}

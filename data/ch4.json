@@ -1,0 +1,59 @@
+{
+  "id": "ch4",
+  "title": "第 4 章 蒙特卡罗推断（假设检验与置信区间）",
+  "tag": "4 题",
+  "knowledge": [
+    "<b>MC 模拟验证统计方法</b>：重复模拟大量样本，检查置信区间覆盖率 / 检验犯错概率是否达标",
+    "<b>截尾均值（Trimmed Mean）</b>：去掉最大 / 最小各 $k$ 个观测后的均值。对离群值稳健",
+    "<b>均方误差 MSE</b>：$\\text{MSE}(\\hat\\theta) = E[(\\hat\\theta - \\theta)^2] = \\text{Var}(\\hat\\theta) + \\text{Bias}^2$。MC 估计：$\\widehat{\\text{MSE}} = \\frac{1}{M}\\sum_{i=1}^M (\\hat\\theta_i - \\theta)^2$",
+    "<b>置信区间覆盖率</b>：模拟 $M$ 次，统计 $\\theta$ 落在 CI 中的比例。应 $\\approx 1-\\alpha$",
+    "<b>假设检验的功效（Power）</b>：$\\text{Power} = P(\\text{拒绝}H_0 \\mid H_1\\text{为真})$。MC 模拟：从 $H_1$ 下生成数据，统计拒绝比例",
+    "<b>第一类错误（Type I error）</b>：$P(\\text{拒绝}H_0 \\mid H_0\\text{为真})$，应 $\\approx \\alpha$"
+  ],
+  "formulas": [
+    {
+      "title": "正态总体置信区间",
+      "body": "$\\mu$ 的 CI（$\\sigma^2$ 未知）：$\\bar X \\pm t_{\\alpha/2,\\,n-1} \\cdot \\frac{S}{\\sqrt{n}}$<br>对数正态 $\\text{LN}(\\mu,\\sigma^2)$：先取对数 $Y = \\ln X \\sim N(\\mu,\\sigma^2)$，对 $Y$ 构造 $t$ 区间"
+    },
+    {
+      "title": "Poisson 参数 $\\lambda$ 的近似 CI",
+      "body": "大样本：$\\bar X \\pm z_{\\alpha/2} \\cdot \\sqrt{\\bar X / n}$，其中 $\\bar X$ 是样本均值"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：MC 估计截尾均值的 MSE — Cauchy 分布",
+      "sections": [
+        { "type": "题目", "html": "<p>$X_1, \\ldots, X_{20}$ 来自标准 Cauchy 分布，估计截尾均值 $\\bar X_{[-k]}$ 在 $k=1,\\ldots,9$ 时的 MSE。</p>" },
+        { "type": "知识点", "html": "<p>Cauchy 分布没有有限均值，所以普通均值不好用。截尾均值更稳健。标准 Cauchy 的中位数 $= 0$（即 location 参数）。</p>" },
+        { "type": "代码", "code": "n <- 20\nM <- 10000   # MC 模拟次数\ntheta <- 0   # Cauchy(0,1) 的 location 参数 = 0\n\nmse <- numeric(9)\nfor (k in 1:9) {\n  tmeans <- numeric(M)\n  for (i in 1:M) {\n    x <- rcauchy(n, location = 0, scale = 1)\n    x_sorted <- sort(x)\n    # 截尾均值：去掉最小 k 个和最大 k 个\n    tmeans[i] <- mean(x_sorted[(k + 1):(n - k)])\n  }\n  mse[k] <- mean((tmeans - theta)^2)   # MSE = E[(θ̂-θ)^2]\n}\n\n# 结果\ndata.frame(k = 1:9, MSE = round(mse, 4))\nplot(1:9, mse, type = \"b\", xlab = \"k\", ylab = \"MSE\",\n     main = \"截尾均值的 MSE vs k\")\n\n# 结论：MSE 在某个 k 处最小（通常 k = 5~7 附近）\n# 截尾比例越大越稳健，但损失效率" },
+        { "type": "提示", "html": "也可以用 <code>mean(x, trim = k/n)</code> 来计算截尾均值，<code>trim</code> 参数是截尾比例（0 到 0.5）。" }
+      ]
+    },
+    {
+      "title": "题 2：MC 验证置信区间 — 对数正态分布",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 构造 $\\text{LN}(\\mu,\\sigma^2)$ 中参数 $\\mu$ 的 $1-\\alpha$ 置信区间；(2) MC 模拟验证覆盖率。</p>" },
+        { "type": "推导", "html": "<p>$X \\sim \\text{LN}(\\mu,\\sigma^2) \\;\\Rightarrow\\; Y = \\ln X \\sim N(\\mu,\\sigma^2)$。对 $Y$ 用 $t$ 区间：$\\bar Y \\pm t_{\\alpha/2,\\,n-1} \\cdot \\frac{S_Y}{\\sqrt{n}}$</p>" },
+        { "type": "代码", "code": "n <- 20; mu <- 0; sigma <- 1; alpha <- 0.05\nM <- 10000\n\n# MC 验证覆盖率\ncount <- 0\nfor (i in 1:M) {\n  x <- rlnorm(n, meanlog = mu, sdlog = sigma)\n  y <- log(x)                    # 取对数变成正态\n  ybar <- mean(y)\n  s    <- sd(y)\n  t_crit <- qt(1 - alpha / 2, df = n - 1)\n  lower  <- ybar - t_crit * s / sqrt(n)\n  upper  <- ybar + t_crit * s / sqrt(n)\n  if (lower <= mu && mu <= upper) count <- count + 1\n}\n\ncoverage <- count / M\ncat(\"经验覆盖率：\", coverage, \"\\n\")\ncat(\"名义水平：\",   1 - alpha, \"\\n\")\n# 覆盖率应接近 0.95" }
+      ]
+    },
+    {
+      "title": "题 3：MC 验证置信区间 — Poisson 分布（务必用 Z 检验）",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 构造 $\\text{Poisson}(\\lambda)$ 的近似 CI；(2) MC 验证经验覆盖率。设 $n=1000,\\;\\lambda=6,\\;\\alpha=0.05$。</p>" },
+        { "type": "推导", "html": "<p>由 CLT：$\\sqrt{n}(\\bar X - \\lambda) \\;\\dot\\to\\; N(0,\\lambda)$，故 $\\bar X \\;\\dot\\sim\\; N\\!\\left(\\lambda,\\,\\frac{\\lambda}{n}\\right)$，CI 用 <b>Z 临界值</b>：$\\bar X \\pm z_{\\alpha/2}\\sqrt{\\bar X / n}$</p>" },
+        { "type": "代码", "code": "set.seed(7789)\nn <- 1000; lambda <- 6; alpha <- 0.05\nm <- 1000\n\nci.maker <- function(y) {\n  y_bar <- mean(y)\n  z     <- qnorm(1 - alpha / 2)     # ✓ 用 Z 临界值，不是 qt！\n  lower <- y_bar - z * sqrt(y_bar / n)\n  upper <- y_bar + z * sqrt(y_bar / n)\n  list(y_bar = y_bar, lower = lower, upper = upper)\n}\n\ncnt <- 0\nfor (i in 1:m) {\n  x   <- rpois(n, lambda = lambda)\n  res <- ci.maker(x)\n  if (lambda > res$lower && lambda < res$upper) cnt <- cnt + 1\n}\ncoverage <- cnt / m\nprint(coverage)   # 接近 0.95" },
+        { "type": "易错点", "html": "<b>常见错误纠正：</b>有些参考答案用 <code>qt(1-alpha/2, df=n-1)</code> 构造 Poisson 的 CI，这是<b>错误</b>的！<br>- Poisson 的渐近正态来自 CLT，参数已知为 $\\sqrt{\\lambda/n}$，<b>不涉及对方差的 $t$ 自由度修正</b><br>- 只有\"正态总体均值 + 方差未知\"时才用 $t$ 检验<br>- $n$ 大时 $t \\to z$，二者数值差异极小，但写法上必须用 <code>qnorm</code>" }
+      ]
+    },
+    {
+      "title": "题 4：MC 计算 $t$ 检验的功效（Power）",
+      "sections": [
+        { "type": "题目", "html": "<p>$X_1,\\ldots,X_{20} \\sim N(\\mu, \\sigma^2)$，$\\sigma=2$ 已知（此处仍演示 $t$ 检验框架，方差由样本估计）。检验 $H_0{:}\\;\\mu=500$ vs $H_1{:}\\;\\mu \\neq 500$。MC 计算 (1) 经验第一类错误率；(2) 在 $\\mu \\in \\{494, 498, 502, 506\\}$ 下的功效。</p>" },
+        { "type": "代码", "code": "set.seed(7789)\nn <- 20; alpha <- 0.05; m <- 1000\nmu_0 <- 500; sd <- 2\n\n# (1) 第一类错误率（H0: μ=500 下模拟）\ncnt <- 0\nfor (i in 1:m) {\n  x <- rnorm(n, mean = mu_0, sd = sd)\n  x_bar <- mean(x); x_sd <- sd(x)\n  t_crit <- qt(1 - alpha / 2, df = n - 1)\n  lower  <- x_bar - t_crit * x_sd / sqrt(n)\n  upper  <- x_bar + t_crit * x_sd / sqrt(n)\n  if (mu_0 > lower && mu_0 < upper) cnt <- cnt + 1   # 落在 CI 中 = 不拒绝\n}\ntype1 <- 1 - cnt / m\nprint(type1)   # 应接近 alpha = 0.05\n\n# (2) 功效（在各 H1: μ=备择值下模拟）\nmus   <- c(494, 498, 502, 506)\npower <- numeric(length(mus))\nfor (i in seq_along(mus)) {\n  mu <- mus[i]; cnt <- 0\n  for (j in 1:m) {\n    x <- rnorm(n, mean = mu, sd = sd)\n    x_bar <- mean(x); x_sd <- sd(x)\n    t_crit <- qt(1 - alpha / 2, df = n - 1)\n    lower  <- x_bar - t_crit * x_sd / sqrt(n)\n    upper  <- x_bar + t_crit * x_sd / sqrt(n)\n    if (mu_0 < lower | mu_0 > upper) cnt <- cnt + 1   # H0 被拒绝\n  }\n  power[i] <- cnt / m\n}\nprint(power)\n\n# 功效曲线\nplot(mus, power, type = \"b\", xlab = \"真实 μ\", ylab = \"Power\",\n     main = \"t 检验功效曲线\")\nabline(h = alpha, lty = 2, col = \"red\")" },
+        { "type": "提示", "html": "<b>功效（Power）</b> $= P(\\text{拒绝}H_0 \\mid H_1\\text{为真})$。$\\mu$ 离 500 越远，power 越高。<br><b>第一类错误率</b> $= P(\\text{拒绝}H_0 \\mid H_0\\text{为真})$，应控制在 $\\alpha$ 附近。<br><b>Z vs t 选择：</b>$\\sigma$ 已知 → Z 检验；$\\sigma$ 未知 → t 检验。" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": "ch7",
+  "title": "第 7 章 MCMC 方法（Markov Chain Monte Carlo）",
+  "tag": "3 题",
+  "knowledge": [
+    "<b>Metropolis-Hastings（MH）算法</b>：从目标分布 $f(x)$ 抽样的通用方法。核心：提议 + 接受 / 拒绝",
+    "<b>MH 步骤</b>：① 从提议分布 $g(Y|X_t)$ 生成候选 $Y$；② 计算接受概率 $\\alpha(X_t,Y) = \\min\\!\\left\\{1,\\;\\frac{f(Y)\\,g(X_t|Y)}{f(X_t)\\,g(Y|X_t)}\\right\\}$；③ 以概率 $\\alpha$ 接受 $Y$，否则 $X_{t+1}=X_t$",
+    "<b>Metropolis 算法</b>：MH 特例，要求 $g(Y|X) = g(X|Y)$（对称提议）。此时 $\\alpha = \\min\\!\\left\\{1,\\;\\frac{f(Y)}{f(X_t)}\\right\\}$",
+    "<b>独立抽样（Independence Sampler）</b>：提议分布 $g(Y)$ 不依赖当前状态。$\\alpha = \\min\\!\\left\\{1,\\;\\frac{f(Y)\\,g(X_t)}{f(X_t)\\,g(Y)}\\right\\}$",
+    "<b>Burn-in</b>：丢弃链初始部分（还未到达平稳分布）。通常丢弃前 10% - 50%",
+    "<b>链的诊断</b>：看 trace plot（轨迹图）、接受率、自相关图。<b>注意：</b>常说的接受率\"理想 20% - 50%\"是针对<b>随机游走 MH</b> 的经验值；独立抽样和 Gibbs 抽样不适用此区间，独立抽样通常希望接受率越高越好"
+  ],
+  "formulas": [
+    {
+      "title": "MH 接受概率",
+      "body": "一般 MH：$\\alpha(X,Y) = \\min\\!\\left\\{1,\\;\\dfrac{f(Y)\\,g(X|Y)}{f(X)\\,g(Y|X)}\\right\\}$<br><br>对称提议（Metropolis）：$\\alpha(X,Y) = \\min\\!\\left\\{1,\\;\\dfrac{f(Y)}{f(X)}\\right\\}$<br><br>独立抽样：$\\alpha(X,Y) = \\min\\!\\left\\{1,\\;\\dfrac{f(Y)\\,g(X)}{f(X)\\,g(Y)}\\right\\}$"
+    },
+    {
+      "title": "Rayleigh 分布",
+      "body": "$$f(x;\\sigma) = \\frac{x}{\\sigma^2}\\,\\exp\\!\\left(-\\frac{x^2}{2\\sigma^2}\\right),\\quad x \\geq 0$$"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：MH 方法抽样 — Rayleigh 分布（χ² 提议）",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) $\\sigma=2$，用 MH（提议分布为 $\\chi^2(X_t)$）从 Rayleigh 抽样；(2) 与 $\\sigma=4$ 比较。</p>" },
+        { "type": "知识点", "html": "<ul><li>拒绝计数器 <code>k1</code>，记录被拒次数（最终接受率 = 1 - k1/n）</li><li>初值 <code>rchisq(1, df=1)</code>，预先生成 <code>u = runif(n)</code></li><li>提议直接用 <code>df = xt</code>（不四舍五入，依赖 R 对非整数 df 的 χ² 支持）</li><li>Rayleigh 密度用 <code>pmax(..., 0)</code> 兜底（向量安全）</li></ul>" },
+        { "type": "代码", "code": "set.seed(114514)\nn <- 10000\n\n# Rayleigh 密度（含 pmax 兜底，向量化安全）\nf <- function(x, sigma) {\n  pmax(x * exp(-x^2 / (2 * sigma^2)) / sigma^2, 0)\n}\n\n# (1) σ = 2\nx1     <- numeric(n)\nx1[1]  <- rchisq(1, df = 1)\nk1     <- 0\nu      <- runif(n)\nfor (i in 2:n) {\n  xt  <- x1[i - 1]\n  y   <- rchisq(1, df = xt)\n  num <- f(y,  2) * dchisq(xt, df = y)\n  den <- f(xt, 2) * dchisq(y,  df = xt)\n  if (u[i] < num / den) x1[i] <- y\n  else                { x1[i] <- xt; k1 <- k1 + 1 }\n}\nprint(k1); print(k1 / n)    # 拒绝数 / 拒绝率\n\n# (2) σ = 4\nx12    <- numeric(n)\nx12[1] <- rchisq(1, df = 1)\nk12    <- 0\nu      <- runif(n)\nfor (i in 2:n) {\n  xt  <- x12[i - 1]\n  y   <- rchisq(1, df = xt)\n  num <- f(y,  4) * dchisq(xt, df = y)\n  den <- f(xt, 4) * dchisq(y,  df = xt)\n  if (u[i] < num / den) x12[i] <- y\n  else                { x12[i] <- xt; k12 <- k12 + 1 }\n}\nprint(k12); print(k12 / n)" },
+        { "type": "提示", "html": "两条链的拒绝率反映混合质量。$\\sigma$ 越大，目标分布尾部越长，$\\chi^2(x_t)$ 提议越容易\"被远点拒绝\"，拒绝率会上升。" }
+      ]
+    },
+    {
+      "title": "题 2：MH 方法 — Gamma 提议分布",
+      "sections": [
+        { "type": "题目", "html": "<p>提议分布 $g(\\cdot\\mid X_t) = \\text{Gamma}(\\text{shape}=X_t,\\;\\text{rate}=1)$，用 MH 从 Rayleigh($\\sigma=2$) 抽样，与题 1 比较。</p>" },
+        { "type": "代码", "code": "set.seed(114514)\nn <- 10000\n\nx2    <- numeric(n)\nx2[1] <- rchisq(1, df = 1)\nk2    <- 0\nu     <- runif(n)\nfor (i in 2:n) {\n  xt  <- x2[i - 1]\n  y   <- rgamma(1, shape = xt, rate = 1)\n  num <- f(y,  2) * dgamma(xt, shape = y,  rate = 1)\n  den <- f(xt, 2) * dgamma(y,  shape = xt, rate = 1)\n  if (u[i] < num / den) x2[i] <- y\n  else                { x2[i] <- xt; k2 <- k2 + 1 }\n}\nprint(k2)\n\n# 对比两种提议的拒绝率\ncbind(chisq = k1 / n, gamma = k2 / n)" },
+        { "type": "提示", "html": "Gamma(shape=xt) 提议与 Rayleigh 的形状更贴近 → 一般比 $\\chi^2$ 提议拒绝率更低、链混合更好。" }
+      ]
+    },
+    {
+      "title": "题 3：MCMC — 标准 Cauchy 分布（随机游走 vs $t_2$ 独立抽样）",
+      "sections": [
+        { "type": "题目", "html": "<p>生成平稳分布为标准 Cauchy 的 Markov 链：$f(x) = \\dfrac{1}{\\pi(1+x^2)}$。(1) Metropolis 随机游走；(2) <b>独立抽样（提议分布 $t_2$）</b>；(3) 比较两者拒绝率。</p>" },
+        { "type": "知识点", "html": "<ul><li>(1) 随机游走提议 $Y \\sim N(X_t,\\,b^2)$，取 <b>$b = 10$</b>（粗大步长以便快速探索 Cauchy 长尾）</li><li>(2) 独立抽样提议 <b>$q = t_2$</b>（厚尾，匹配 Cauchy 的尾部行为；用 $N(0,1)$ 会因尾部太薄导致接受率偏低、链卡住）</li></ul>" },
+        { "type": "代码", "code": "set.seed(114514)\nn <- 10000\n\n# 目标：标准 Cauchy\nf <- function(x) 1 / (pi * (1 + x^2))\n\n# === (1) Metropolis 随机游走 ===\nb  <- 10\nx3 <- numeric(n)\nx3[1] <- rnorm(1, mean = 0, sd = b)\nk3 <- 0\nu  <- runif(n)\nfor (i in 2:n) {\n  xt <- x3[i - 1]\n  y  <- rnorm(1, mean = xt, sd = b)\n  if (u[i] < f(y) / f(xt)) x3[i] <- y\n  else                   { x3[i] <- xt; k3 <- k3 + 1 }\n}\nprint(k3); print(k3 / n)\n\n# === (2) 独立抽样：提议为 t_2（厚尾）===\nrq <- function(n) rt(n, df = 2)\ndq <- function(x) dt(x, df = 2)\n\nx3_ind    <- numeric(n)\nx3_ind[1] <- rq(1)\nk32       <- 0\nu         <- runif(n)\nfor (i in 2:n) {\n  xt <- x3_ind[i - 1]\n  y  <- rq(1)\n  r  <- (f(y) * dq(xt)) / (f(xt) * dq(y))\n  if (u[i] < r) x3_ind[i] <- y\n  else        { x3_ind[i] <- xt; k32 <- k32 + 1 }\n}\nprint(k32); print(k32 / n)\n\n# (3) 比较拒绝率\ncbind(rw_normal = k3 / n, indep_t2 = k32 / n)\n\n# 可视化\npar(mfrow = c(2, 2))\nplot(x3,     type = \"l\", main = \"随机游走 (sd = 10)\")\nplot(x3_ind, type = \"l\", main = \"独立抽样 t_2\")\nhist(x3,     breaks = 60, prob = TRUE, xlim = c(-15, 15), main = \"随机游走\")\ncurve(f(x), add = TRUE, col = \"red\", lwd = 2)\nhist(x3_ind, breaks = 60, prob = TRUE, xlim = c(-15, 15), main = \"独立抽样 t_2\")\ncurve(f(x), add = TRUE, col = \"red\", lwd = 2)" },
+        { "type": "易错点", "html": "<b>独立抽样提议的选择（关键）：</b><br>- <b>正确：</b>$t_\\nu$（$\\nu$ 小，尾厚）作为 Cauchy 的提议，接受率高、混合好<br>- <b>错误：</b>$N(0,1)$ 尾部 $\\sim e^{-x^2/2}$ 比 Cauchy $\\sim 1/x^2$ 薄得多 → 比值 $f/g$ 在远点爆炸 → 接受率低、链长时间卡住<br>- 经验法则：独立提议必须比目标分布尾部\"更厚或同样厚\"" }
+      ]
+    }
+  ]
+}

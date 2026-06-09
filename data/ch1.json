@@ -1,0 +1,73 @@
+{
+  "id": "ch1",
+  "title": "第 1 章 R 语言基础与数据操作",
+  "tag": "6 题",
+  "knowledge": [
+    "<b>文件读写</b>：<code>write(x, \"file.txt\")</code> 写入，<code>scan(\"file.txt\")</code> 读入，<code>sink(\"file.txt\")</code> 重定向输出",
+    "<b>CSV 读写</b>：<code>read.csv(\"file.csv\")</code> 读 CSV，<code>write.csv(df, \"file.csv\")</code> 写 CSV",
+    "<b>向量生成</b>：<code>rep(x, times/each)</code> 重复，<code>seq(from, to, by)</code> 序列，<code>1:n</code> 简单序列",
+    "<b>随机抽样</b>：<code>rgamma(n, shape, scale)</code> Gamma 分布抽样；<code>set.seed()</code> 设随机种子",
+    "<b>基本统计量</b>：<code>mean()</code> 均值，<code>sd()</code> 标准差，<code>var()</code> 方差，<code>cor()</code> 相关系数",
+    "<b>绘图</b>：<code>pie()</code> 饼图，<code>barplot()</code> 柱状图，<code>boxplot()</code> 箱线图，<code>qqnorm()/qqline()</code> QQ 图",
+    "<b>回归分析</b>：<code>lm(y ~ x)</code> 线性回归，<code>summary()</code> 查看结果，<code>resid()</code> 提取残差"
+  ],
+  "formulas": [
+    {
+      "title": "Gamma 分布 $X \\sim \\text{Gamma}(\\alpha, \\beta)$（shape-scale 参数化）",
+      "body": "均值 $E[X] = \\alpha\\beta$，方差 $\\text{Var}(X) = \\alpha\\beta^2$，标准差 $\\text{SD}(X) = \\sqrt{\\alpha}\\,\\beta$<br>R 中：<code>rgamma(n, shape=a, scale=b)</code> 或 <code>rgamma(n, shape=a, rate=1/b)</code>"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：write / scan / sink 文件读写",
+      "sections": [
+        { "type": "题目", "html": "<p>创建对象 $x = 1{:}100$，用 <code>write</code> 写入文件，删除 $x$ 再读回；用 <code>sink</code> 将 $x$ 写入文件。</p>" },
+        { "type": "知识点", "html": "<p><code>write()</code> 将向量写入文件；<code>scan()</code> 从文件读回向量；<code>sink()</code> 将后续控制台输出重定向到文件。</p>" },
+        { "type": "代码", "code": "# 方法 1：write + scan\nx <- 1:100\nwrite(x, file = \"x.txt\")   # 写入文件\nrm(x)                       # 删除对象 x\nx <- scan(\"x.txt\")          # 从文件读回\nx\n\n# 方法 2：sink 重定向\nx <- 1:100\nsink(\"x.txt\")               # 开始重定向：之后所有输出写入文件\nprint(x)                    # 必须用 print()，交互模式下直接写 x 也可以\nsink()                      # 关闭重定向，恢复正常输出" },
+        { "type": "提示", "html": "<code>sink()</code> 是\"开关\"模式：第一次调用开启重定向，第二次调用（无参数）关闭。<code>write()</code> 直接写数据值，<code>sink()</code> 捕获的是 <code>print</code> 输出（带格式）。" }
+      ]
+    },
+    {
+      "title": "题 2：CSV 文件读取与数据子集保存",
+      "sections": [
+        { "type": "题目", "html": "<p>读取 <code>2015city.csv</code>，将各个地区的居住、教育、交通等分别存储到不同文件。</p>" },
+        { "type": "代码", "code": "data <- read.csv(\"2015city.csv\")\nstr(data)   # 查看数据结构\n\n# 假设列名包含 \"居住\"、\"教育文化娱乐\"、\"交通通信\" 等\n# 提取并保存各分项\nwrite.csv(data[, c(\"地区\", \"居住\")],         \"居住.csv\", row.names = FALSE)\nwrite.csv(data[, c(\"地区\", \"教育文化娱乐\")], \"教育.csv\", row.names = FALSE)\nwrite.csv(data[, c(\"地区\", \"交通通信\")],     \"交通.csv\", row.names = FALSE)" },
+        { "type": "提示", "html": "<code>read.csv()</code> 默认 <code>header=TRUE</code>。用 <code>data[, c(\"列名1\", \"列名2\")]</code> 提取子集。" }
+      ]
+    },
+    {
+      "title": "题 3：rep() 和 seq() 创建特定模式向量",
+      "sections": [
+        { "type": "题目", "html": "<p>创建向量：(1) $1\\,1\\,1\\,1\\,1\\;2\\,2\\,2\\,2\\,2\\;\\cdots\\;5\\,5\\,5\\,5\\,5$；(2) $1\\,2\\,3\\,4\\,5\\;1\\,2\\,3\\,4\\,5\\;\\cdots$ 重复 5 次。</p>" },
+        { "type": "知识点", "html": "<p><code>rep(x, each=n)</code>：每个元素连续重复 $n$ 次；<code>rep(x, times=n)</code>：整个向量重复 $n$ 次。</p>" },
+        { "type": "代码", "code": "# 向量 1：1 1 1 1 1 2 2 2 2 2 ... 5 5 5 5 5\nv1 <- rep(1:5, each = 5)\nv1\n\n# 向量 2：1 2 3 4 5 1 2 3 4 5 ...（重复 5 次）\nv2 <- rep(1:5, times = 5)\nv2" },
+        { "type": "易错点", "html": "<code>each</code> 与 <code>times</code> 参数容易混淆！<code>each</code> = 每个元素重复；<code>times</code> = 整体重复。" }
+      ]
+    },
+    {
+      "title": "题 4：Gamma 分布抽样与基本统计量",
+      "sections": [
+        { "type": "题目", "html": "<p>从 $\\text{Gamma}(\\text{shape}=2,\\;\\text{scale}=1)$ 生成 100 个样本，计算样本均值和样本标准差。</p>" },
+        { "type": "代码", "code": "set.seed(123)   # 设随机种子，保证可重复\nx <- rgamma(100, shape = 2, scale = 1)\nmean(x)         # 样本均值（理论值 = shape*scale = 2）\nsd(x)           # 样本标准差（理论值 = sqrt(shape)*scale = sqrt(2) ≈ 1.414）" }
+      ]
+    },
+    {
+      "title": "题 5：数据可视化（饼图 / 柱状图 / 箱线图 / 回归）",
+      "sections": [
+        { "type": "题目", "html": "<p>(a) 上海 8 项支出饼图；(b) 各地区 8 项支出柱状图；(c) 31 地区总消费箱线图；(d) 食品烟酒 $\\sim$ 总消费回归分析 + 残差 QQ 图。</p>" },
+        { "type": "代码", "code": "data <- read.csv(\"2015city.csv\")\n\n# (a) 上海市饼图\nshanghai <- data[data$地区 == \"上海\", -1]   # 去掉 \"地区\" 列\npie(as.numeric(shanghai), labels = names(shanghai),\n    main = \"上海市城镇居民消费支出构成\")\n\n# (b) 柱状图：各地区各项支出\n# 注意需要转置：barplot 把矩阵的列视为分组维度，\n# 因此行=支出项目、列=地区时，legend.text=地区才能对齐。\nmat <- t(as.matrix(data[, -1]))\ncolnames(mat) <- data$地区\nbarplot(mat, beside = TRUE, legend.text = rownames(mat),\n        main = \"各地区消费支出\", las = 2)\n\n# (c) 箱线图\ntotal <- rowSums(data[, -1])   # 计算每个地区总消费\nboxplot(total, main = \"31 个地区总消费箱线图\")\n\n# (d) 线性回归：食品烟酒 ~ 总消费\nmodel <- lm(data$食品烟酒 ~ total)\nsummary(model)\n# 解读：Coefficients 的 Estimate（系数）、Pr(>|t|)（p 值）、R-squared（拟合优度）\n\n# 残差 QQ 图\nr <- resid(model)\nqqnorm(r); qqline(r, col = \"red\")\n# 点大致落在直线上 → 残差近似正态" },
+        { "type": "提示", "html": "<b><code>summary(lm)</code> 输出怎么读：</b><br>- <b>Estimate</b>：回归系数（截距和斜率）<br>- <b>Pr(&gt;|t|)</b>：$p$ 值，$&lt; 0.05$ 说明系数显著<br>- <b>R-squared</b>：越接近 1 拟合越好<br>- <b>QQ 图</b>：点贴近直线 = 残差近似正态" },
+        { "type": "易错点", "html": "<b>结构性自相关警告（题 (d)）：</b>这里的 <code>total = rowSums(data[, -1])</code> 已经包含了因变量 <code>食品烟酒</code> 本身，因此 <code>lm(食品烟酒 ~ total)</code> 让因变量参与了自变量的构造，会产生人为放大的 $R^2$。严格做法是 <code>total_other <- total - data$食品烟酒</code> 再回归。本题按原意保留写法，但务必清楚结论的解释边界。" }
+      ]
+    },
+    {
+      "title": "题 6：系统数据集 state.x77 — 回归分析与残差诊断",
+      "sections": [
+        { "type": "题目", "html": "<p>使用 R 内置系统数据集 <code>state.x77</code>（50 个州 8 项指标），(1) 查看数据结构；(2) 以 <code>Life Exp</code>（预期寿命）为因变量、<code>Murder</code>（谋杀率）为自变量做线性回归；(3) 用 <code>summary()</code> 解读；(4) 残差正态 QQ 图诊断。</p>" },
+        { "type": "知识点", "html": "<p><code>state.x77</code> 是 50×8 矩阵，列名含 <code>Population, Income, Illiteracy, Life Exp, Murder, HS Grad, Frost, Area</code>。注意列名带空格，提取需用反引号或 <code>[, \"Life Exp\"]</code>。</p>" },
+        { "type": "代码", "code": "# (1) 系统数据集 state.x77\ndata(state)         # 加载 state 一族数据\nstr(state.x77)      # 50 个州 × 8 列指标\nhead(state.x77)\ndf <- as.data.frame(state.x77)\nnames(df) <- make.names(names(df))   # \"Life Exp\" -> \"Life.Exp\"\n\n# (2) 线性回归：预期寿命 ~ 谋杀率\nmodel <- lm(Life.Exp ~ Murder, data = df)\n\n# (3) summary 解读\nsummary(model)\n# 关注：Estimate（斜率应为负）、Pr(>|t|)（p<0.05 显著）、R-squared\n\n# (4) 残差正态 QQ 图\ne <- resid(model)\nqqnorm(e, main = \"残差 QQ 图 - state.x77\")\nqqline(e, col = \"red\")\nshapiro.test(e)     # p > 0.05 不拒绝正态假设\n\n# 散点图 + 回归线\nplot(df$Murder, df$Life.Exp, xlab = \"Murder\", ylab = \"Life Exp\",\n     main = \"州谋杀率 vs 预期寿命\")\nabline(model, col = \"blue\", lwd = 2)" },
+        { "type": "提示", "html": "<code>state.x77</code> 是经典系统数据集。同族还有 <code>state.name</code>（州名）、<code>state.region</code>（区域因子）、<code>state.abb</code>（缩写）。可用 <code>data(state)</code> 一次加载全部。" }
+      ]
+    }
+  ]
+}

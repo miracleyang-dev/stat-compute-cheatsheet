@@ -1,0 +1,53 @@
+{
+  "id": "sup1",
+  "title": "补充：测验 & 附加题",
+  "tag": "4 题",
+  "knowledge": [
+    "<b>混合多元正态</b>：以概率 $p$ 从 $N_d(\\mu_1,\\Sigma_1)$ 抽样，$1-p$ 从 $N_d(\\mu_2,\\Sigma_2)$ 抽样。先用 <code>rbinom</code> 决定每组样本量，再分别抽样后合并打乱",
+    "<b>Antithetic 方差缩减验证</b>：重复 $N$ 轮，分别记录普通 MC 与对偶 MC 估计，比较 <code>var(.)</code>",
+    "<b>Z 检验 vs t 检验</b>：方差 $\\sigma^2$ 已知用 Z（$\\sqrt{n}(\\bar X - \\mu_0)/\\sigma$），未知用 t（$\\sqrt{n}(\\bar X - \\mu_0)/s$）。两者在大样本下数值趋近，但写法须区分",
+    "<b>Cauchy 位置参数 MLE</b>：似然不对称、可能多峰，需用 Newton 法迭代求 $\\ell'(\\mu)=0$"
+  ],
+  "formulas": [
+    {
+      "title": "Cauchy 位置参数对数似然及其导数",
+      "body": "$X_i \\sim \\text{Cauchy}(\\mu, 1)$ 时，$\\ell(\\mu) = -\\sum_{i=1}^n \\ln\\!\\left(1+(x_i-\\mu)^2\\right) + \\text{const}$<br>一阶导：$\\ell'(\\mu) = \\sum_{i=1}^n \\dfrac{2(x_i-\\mu)}{1+(x_i-\\mu)^2}$<br>二阶导：$\\ell''(\\mu) = \\sum_{i=1}^n \\dfrac{2\\bigl((x_i-\\mu)^2-1\\bigr)}{\\bigl(1+(x_i-\\mu)^2\\bigr)^2}$"
+    }
+  ],
+  "problems": [
+    {
+      "title": "Test 2（Ch2）：混合二元正态 — 三种分解法",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 写函数 <code>rmmvn.*</code>，用 eigen / svd / Cholesky 三种方法生成混合分布 $p\\,N_2(\\mu_1,\\Sigma_1) + (1-p)\\,N_2(\\mu_2,\\Sigma_2)$ 的样本；(2) 取 $p=0.8,\\;n=10000,\\;\\mu_1=\\mu_2=(0,0)^\\top,\\;\\Sigma_1=I,\\;\\Sigma_2=\\begin{pmatrix}2&amp;0.5\\\\0.5&amp;2\\end{pmatrix}$，估计均值与协方差。</p>" },
+        { "type": "代码", "code": "set.seed(13)\n\n# (1) 通用框架：先决定每组样本量，再分别抽样，最后打乱\nrmmvn.eigen <- function(n, p, mu1, Sigma1, mu2, Sigma2) {\n  rmvn.eigen <- function(n, mu, Sigma) {\n    d  <- length(mu)\n    ev <- eigen(Sigma, symmetric = TRUE)\n    R  <- ev$vectors %*% diag(sqrt(ev$values)) %*% t(ev$vectors)\n    Z  <- matrix(rnorm(n * d), nrow = n, ncol = d)\n    Z %*% R + matrix(mu, n, d, byrow = TRUE)\n  }\n  n1 <- rbinom(1, size = n, prob = p); n2 <- n - n1\n  X  <- rbind(rmvn.eigen(n1, mu1, Sigma1),\n              rmvn.eigen(n2, mu2, Sigma2))\n  X[sample(1:n), ]\n}\n\nrmmvn.svd <- function(n, p, mu1, Sigma1, mu2, Sigma2) {\n  rmvn.svd <- function(n, mu, Sigma) {\n    d <- length(mu); S <- svd(Sigma)\n    R <- S$u %*% diag(sqrt(S$d)) %*% t(S$v)\n    Z <- matrix(rnorm(n * d), nrow = n, ncol = d)\n    Z %*% R + matrix(mu, n, d, byrow = TRUE)\n  }\n  n1 <- rbinom(1, size = n, prob = p); n2 <- n - n1\n  X  <- rbind(rmvn.svd(n1, mu1, Sigma1),\n              rmvn.svd(n2, mu2, Sigma2))\n  X[sample(1:n), ]\n}\n\nrmmvn.choleski <- function(n, p, mu1, Sigma1, mu2, Sigma2) {\n  rmvn.choleski <- function(n, mu, Sigma) {\n    d <- length(mu); Q <- chol(Sigma)\n    Z <- matrix(rnorm(n * d), nrow = n, ncol = d)\n    Z %*% Q + matrix(mu, n, d, byrow = TRUE)\n  }\n  n1 <- rbinom(1, size = n, prob = p); n2 <- n - n1\n  X  <- rbind(rmvn.choleski(n1, mu1, Sigma1),\n              rmvn.choleski(n2, mu2, Sigma2))\n  X[sample(1:n), ]\n}\n\n# (2) 应用\np  <- 0.8; n <- 10000\nmu1 <- mu2 <- c(0, 0)\nSigma1 <- matrix(c(1, 0, 0, 1), 2, 2)\nSigma2 <- matrix(c(2, 0.5, 0.5, 2), 2, 2)\n\nX1 <- rmmvn.eigen(n, p, mu1, Sigma1, mu2, Sigma2)\napply(X1, 2, mean); cov(X1)\n\nX2 <- rmmvn.svd(n, p, mu1, Sigma1, mu2, Sigma2)\napply(X2, 2, mean); cov(X2)\n\nX3 <- rmmvn.choleski(n, p, mu1, Sigma1, mu2, Sigma2)\napply(X3, 2, mean); cov(X3)" },
+        { "type": "提示", "html": "三种方法估计的样本均值都 $\\approx (0,0)$；理论协方差 $= p\\Sigma_1 + (1-p)\\Sigma_2 + p(1-p)(\\mu_1-\\mu_2)(\\mu_1-\\mu_2)^\\top = 0.8\\,I + 0.2\\,\\Sigma_2$。" }
+      ]
+    },
+    {
+      "title": "Test 3（Ch3）：对偶变量法验证方差缩减 — $\\int_0^1 \\frac{e^{-x}}{1+x^2}dx$",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 简单 MC；(2) 对偶变量法；(3) 重复 $N=1000$ 次，比较两种方法估计量的方差；(4) 总结。</p>" },
+        { "type": "代码", "code": "set.seed(13)\nf <- function(x) exp(-x) / (1 + x^2)\nm <- 10000\n\n# (1) 简单 MC\nu <- runif(m)\nround(mean(f(u)), 3)\n\n# (2) 对偶变量法\nv <- runif(m / 2)\nround(sum(f(v) + f(1 - v)) / m, 3)   # = mean((f(v) + f(1-v)) / 2)\n\n# (3) 重复 N 轮，比较方差\nN <- 1000\nans.smc <- numeric(N); ans.amc <- numeric(N)\nfor (i in 1:N) {\n  u <- runif(m);     ans.smc[i] <- mean(f(u))\n  v <- runif(m / 2); ans.amc[i] <- sum((f(v) + f(1 - v)) / m)\n}\ndata.frame(\n  简单mc          = var(ans.smc),\n  对偶变量积分法   = var(ans.amc)\n)\n\n# (4) 结论\ncat(\"说明了对偶变量积分法确实起到了减少方差的作用\")" },
+        { "type": "提示", "html": "对偶变量法的方差通常显著小于简单 MC（在 $f$ 单调时缩减效果最佳），因为 $f(U)$ 与 $f(1-U)$ 负相关。" }
+      ]
+    },
+    {
+      "title": "Test 4（Ch4）：Z 检验 vs t 检验 — 第一类错误与功效对比",
+      "sections": [
+        { "type": "题目", "html": "<p>$X_1,\\ldots,X_n \\sim N(\\mu_0, \\sigma_0^2)$，$\\mu_0=0,\\;\\sigma_0=\\sqrt{2},\\;n=100$，检验 $H_0:\\mu=\\mu_0$ vs $H_1:\\mu\\neq\\mu_0$。<br>(1) 计算 $\\alpha\\in\\{0.01,0.05,0.10\\}$ 下 Z 检验与 t 检验的经验第一类错误率；(2) 在 $\\mu\\in\\{0.3,0.4,0.5\\}$ 下计算两者的功效；(3) 结论。</p>" },
+        { "type": "知识点", "html": "<p>Z 统计量：$T_1 = \\sqrt{n}\\,(\\bar X - \\mu_0) / \\sigma_0$（$\\sigma_0$ 已知）&emsp;t 统计量：$T_2 = \\sqrt{n}\\,(\\bar X - \\mu_0) / s$（$s$ 为样本标准差）</p>" },
+        { "type": "代码", "code": "set.seed(999)\nn <- 100; mu0 <- 0; sigma0 <- sqrt(2); m <- 1000\nalpha_vec <- c(0.01, 0.05, 0.10)\n\n# (1) 经验第一类错误率\ner1_res <- c(); er2_res <- c()\nfor (alpha in alpha_vec) {\n  z_crit <- qnorm(1 - alpha / 2)\n  t_crit <- qt(1 - alpha / 2, df = n - 1)\n  e1 <- numeric(m); e2 <- numeric(m)\n  for (k in 1:m) {\n    x <- rnorm(n, mean = mu0, sd = sigma0)\n    x_bar <- mean(x); s <- sd(x)\n    t1 <- sqrt(n) * (x_bar - mu0) / sigma0   # Z 统计量（σ 已知）\n    t2 <- sqrt(n) * (x_bar - mu0) / s        # t 统计量（σ 未知）\n    e1[k] <- as.numeric(abs(t1) >= z_crit)\n    e2[k] <- as.numeric(abs(t2) >= t_crit)\n  }\n  er1_res <- c(er1_res, mean(e1)); er2_res <- c(er2_res, mean(e2))\n}\ndata.frame(alpha = alpha_vec,\n           ER1 = round(er1_res, 4),    # Z 检验经验 Type I\n           ER2 = round(er2_res, 4))    # t 检验经验 Type I\n\n# (2) 功效\nmu_vec <- c(0.3, 0.4, 0.5); alpha <- 0.05\nz_crit <- qnorm(1 - alpha / 2); t_crit <- qt(1 - alpha / 2, df = n - 1)\npower1_res <- c(); power2_res <- c()\nfor (mu in mu_vec) {\n  p1 <- numeric(m); p2 <- numeric(m)\n  for (k in 1:m) {\n    x <- rnorm(n, mean = mu, sd = sigma0)\n    x_bar <- mean(x); s <- sd(x)\n    t1 <- sqrt(n) * (x_bar - mu0) / sigma0\n    t2 <- sqrt(n) * (x_bar - mu0) / s\n    p1[k] <- as.numeric(abs(t1) >= z_crit)\n    p2[k] <- as.numeric(abs(t2) >= t_crit)\n  }\n  power1_res <- c(power1_res, mean(p1))\n  power2_res <- c(power2_res, mean(p2))\n}\ndata.frame(mu = mu_vec,\n           POWER1 = round(power1_res, 4),\n           POWER2 = round(power2_res, 4))\n\n# (3) 结论\ncat(\"两种检验的 I 类错误率均接近显著性水平 α，控制良好。\n备择假设下，Z 检验功效略高于 t 检验（无需估计方差，更稳定），\n两者功效均随 μ 增大而提高。\n方差已知时优先用 Z；方差未知时用 t 虽功效略损但能控制 I 型错误。\")" },
+        { "type": "易错点", "html": "<b>易混点：</b><br>- $\\sigma$ 已知 → Z 检验：$T = \\sqrt{n}(\\bar X-\\mu_0)/\\sigma$，临界值 $z_{\\alpha/2}$<br>- $\\sigma$ 未知 → t 检验：$T = \\sqrt{n}(\\bar X-\\mu_0)/s$，临界值 $t_{\\alpha/2, n-1}$<br>- Poisson / Bernoulli 等渐近正态用 <b>Z</b>，不要套 $t$！<br>- <b>公式书写</b>：统计量定义中的 $(\\bar X - \\mu_0)$ 不能省略 $\\mu_0$（即便特殊情形下 $\\mu_0 = 0$ 数值相同）。" }
+      ]
+    },
+    {
+      "title": "附加题（Ch6）：Cauchy 位置参数的 Newton-Raphson MLE",
+      "sections": [
+        { "type": "题目", "html": "<p>$X_1,\\ldots,X_n$ 来自 $\\text{Cauchy}(\\mu, 1)$，$\\mu=2,\\;n=200$。用 Newton 法求 $\\mu$ 的 MLE，初始 $\\mu^{(0)}=1$。</p>" },
+        { "type": "推导", "html": "<p>对数似然 $\\ell(\\mu) = -\\sum_i \\ln(1+(x_i-\\mu)^2)$。Newton 迭代：$\\mu^{(k+1)} = \\mu^{(k)} - \\dfrac{\\ell'(\\mu^{(k)})}{\\ell''(\\mu^{(k)})}$。一 / 二阶导见上方公式。</p>" },
+        { "type": "代码", "code": "set.seed(13)\nn <- 200; mu <- 2\nx <- rcauchy(n, location = mu, scale = 1)\n\nnt <- function(mu0, eps = 1e-6, iter.max = 200) {\n  f_prime  <- function(mu) sum(2 * (x - mu) / (1 + (x - mu)^2))\n  f_double <- function(mu) sum(2 * ((x - mu)^2 - 1) / (1 + (x - mu)^2)^2)\n  it <- 0\n  for (i in 1:iter.max) {\n    it <- it + 1\n    mu1 <- mu0 - f_prime(mu0) / f_double(mu0)\n    if (abs(mu1 - mu0) < eps) break\n    mu0 <- mu1\n  }\n  list(root = mu1, iter = it)\n}\n\nres <- nt(mu0 = 1)\nprint(res)   # root 应接近真值 μ = 2" },
+        { "type": "易错点", "html": "<b>Cauchy MLE 易错点：</b><br>- Cauchy 似然非凸、可能多个局部极大 → 初值选择影响收敛<br>- 不能用样本均值做初值（Cauchy 均值不存在），用<b>样本中位数</b> <code>median(x)</code> 更稳健，可作为更稳妥的替代初值（本题按原题保留 <code>mu0 = 1</code>）<br>- Newton 法在二阶导接近 0 时不稳定，可加阻尼或退回到二分法" }
+      ]
+    }
+  ]
+}

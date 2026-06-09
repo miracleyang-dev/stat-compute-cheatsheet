@@ -1,0 +1,55 @@
+{
+  "id": "ch3",
+  "title": "第 3 章 蒙特卡罗积分",
+  "tag": "4 题",
+  "knowledge": [
+    "<b>基本 MC 积分</b>：$\\theta = \\int h(x)\\,dx \\approx \\frac{1}{n}\\sum g(X_i)$，本质是用样本均值估计期望",
+    "<b>简单 MC</b>：$\\int_a^b h(x)\\,dx = (b-a)\\,E[h(X)]$，$X \\sim U(a,b)$。估计：$\\hat\\theta = \\frac{b-a}{n}\\sum_{i=1}^n h(X_i)$",
+    "<b>对偶变量法（Antithetic）</b>：用 $U$ 和 $1-U$（对偶）的均值来降低方差。$\\hat\\theta = \\frac{1}{n}\\sum \\frac{g(U_i)+g(1-U_i)}{2}$",
+    "<b>重要抽样法（Importance Sampling）</b>：$\\int h(x)f(x)\\,dx = \\int \\frac{h(x)f(x)}{g(x)}\\,g(x)\\,dx$，从 $g(x)$ 抽样。估计：$\\hat\\theta = \\frac{1}{n}\\sum \\frac{h(X_i)f(X_i)}{g(X_i)}$",
+    "<b>方差估计</b>：$\\widehat{\\text{Var}}(\\hat\\theta) = S^2 / n$，$S^2$ 是样本方差"
+  ],
+  "formulas": [
+    {
+      "title": "MC 积分的核心恒等式",
+      "body": "$$\\int_a^b h(x)\\,dx = (b-a)\\,E_U[h(U)],\\quad U \\sim \\text{Uniform}(a,b)$$更一般：$\\int h(x)f(x)\\,dx = E_f[h(X)] \\approx \\frac{1}{n}\\sum_{i=1}^n h(X_i),\\; X_i \\sim f$"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：基本 MC 积分 — $\\int_0^{0.5} e^{-x}\\,dx$",
+      "sections": [
+        { "type": "题目", "html": "<p>估计 $\\theta = \\int_0^{0.5} e^{-x}\\,dx$。(1) 均匀分布抽样；(2) 指数分布 + 指示函数法；(3) 比较两种方法的方差。</p>" },
+        { "type": "推导", "html": "<p>理论值：$\\theta = [-e^{-x}]_0^{0.5} = 1 - e^{-0.5} \\approx 0.3935$</p>" },
+        { "type": "代码", "code": "set.seed(123)\nn <- 10000\n\n# (1) 均匀分布 U(0, 0.5) 抽样\n# θ = ∫_0^{0.5} e^{-x} dx = 0.5 * E[e^{-U}]，U ~ U(0, 0.5)\nx <- runif(n, 0, 0.5)\nh <- function(x) 0.5 * exp(-x)\ny <- h(x)\ntheta_hat <- mean(y)\nvar_hat   <- var(y) / n\nprint(c(theta_hat, var_hat))\n\n# (2) 指数分布 + 指示函数法（hit-or-miss）\n# θ = P(0 < X < 0.5)，X ~ Exp(1)（因为 Exp(1) 密度恰为 e^{-x}）\nx <- rexp(n)\ny <- as.numeric(x > 0 & x < 0.5)   # 落入 [0, 0.5] 的指示\ntheta_delta <- mean(y)\nvar_delta   <- var(y) / n\nprint(c(theta_delta, var_delta))\n\n# (3) 方差对比\ndata.frame(\n  方法 = c(\"均匀抽样\", \"指数+指示函数\"),\n  估计 = c(theta_hat, theta_delta),\n  方差 = c(var_hat,   var_delta)\n)\n# 结论：均匀抽样的方差更小（前者 var ≈ 6.3e-6，后者 ≈ 2.4e-5）\n# 原因：指示函数是 0/1 变量，方差由 Bernoulli 决定；\n#       而均匀法直接对光滑函数取均值，方差更小" },
+        { "type": "提示", "html": "<b>关键对比：</b>指数+指示函数法本质是 hit-or-miss MC（伯努利方差 $p(1-p)/n$），通常比直接连续型估计方差大。当抽样密度 $g(x)$ 越贴合 $h(x)$ 形状，方差越小。" }
+      ]
+    },
+    {
+      "title": "题 2：MC 估计正态分布 CDF $\\Phi(x)$",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 用 MC 估计 $\\Phi(x)$；(2) 与 <code>pnorm</code> 比较；(3) 估计 $\\Phi(2)$ 及其方差。</p>" },
+        { "type": "推导", "html": "<p>对 $x > 0$：$\\Phi(x) = 0.5 + \\int_0^x \\varphi(t)\\,dt = 0.5 + x\\,E[\\varphi(xU)]$，$U \\sim U(0,1)$，$\\varphi$ 为标准正态密度。</p>" },
+        { "type": "代码", "code": "phi_mc <- function(x, n = 10000) {\n  # Φ(x) = 0.5 + ∫_0^x φ(t) dt = 0.5 + x * E[φ(x*U)]，U ~ U(0,1)\n  u <- runif(n)\n  g <- dnorm(x * u)            # φ(x*u)\n  theta <- x * mean(g)         # ∫_0^x φ(t) dt 的 MC 估计\n  return(0.5 + theta)\n}\n\n# (2) 与 pnorm 比较\nx_vals    <- seq(0.5, 3, by = 0.5)\nmc_vals   <- sapply(x_vals, phi_mc)\ntrue_vals <- pnorm(x_vals)\ncbind(x = x_vals, MC = round(mc_vals, 4), pnorm = round(true_vals, 4))\n\n# (3) Φ(2) 的 MC 估计和方差\nset.seed(123)\nn <- 10000\nu <- runif(n)\ng <- 2 * dnorm(2 * u)          # x=2 时的被积函数值\ntheta     <- 0.5 + mean(g)\nvar_theta <- var(g) / n\ncat(\"Φ(2) MC 估计：\", theta, \"\\n\")\ncat(\"方差：\",         var_theta, \"\\n\")\ncat(\"pnorm(2)：\",     pnorm(2), \"\\n\")" }
+      ]
+    },
+    {
+      "title": "题 3：对偶变量法（Antithetic Variates）",
+      "sections": [
+        { "type": "题目", "html": "<p>用对偶变量法估计 $\\int_0^1 \\frac{e^{-x}}{1+x^2}\\,dx$，并计算方差。</p>" },
+        { "type": "推导", "html": "<p>若 $g(x)$ 单调，则 $g(U)$ 和 $g(1-U)$ 负相关，$\\frac{g(U)+g(1-U)}{2}$ 的方差 $&lt;$ $g(U)$ 的方差。</p>" },
+        { "type": "代码", "code": "n <- 10000\nset.seed(123)\n\nh <- function(x) exp(-x) / (1 + x^2)\n\n# 普通 MC\nu <- runif(n)\ntheta_mc <- mean(h(u))\nvar_mc   <- var(h(u)) / n\n\n# 对偶变量法\nu <- runif(n / 2)                            # 只需 n/2 个\ntheta_anti <- mean((h(u) + h(1 - u)) / 2)    # 对偶均值\nvar_anti   <- var((h(u) + h(1 - u)) / 2) / (n / 2)\n\ncat(\"普通 MC：  theta =\", theta_mc,   \"，var =\", var_mc,   \"\\n\")\ncat(\"对偶变量：theta =\", theta_anti, \"，var =\", var_anti, \"\\n\")\ncat(\"方差缩减比：\", var_mc / var_anti, \"\\n\")" },
+        { "type": "提示", "html": "对偶变量法只需一半样本量！关键：用 $U$ 和 $1-U$ 配对。适用于被积函数单调或近似单调的情况。" }
+      ]
+    },
+    {
+      "title": "题 4：重要抽样法（Importance Sampling）",
+      "sections": [
+        { "type": "题目", "html": "<p>用重要抽样法估计 $\\int_1^{+\\infty} \\frac{x^2}{\\sqrt{2\\pi}}\\,e^{-x^2/2}\\,dx$。</p>" },
+        { "type": "推导", "html": "<p>被积函数 $= x^2 \\varphi(x)$，积分域 $[1,+\\infty)$。选 $g(x)$ 为平移指数分布：$g(x) = e^{-(x-1)}$，$x \\geq 1$。从 $g$ 抽样：$Y = 1 + \\text{Exp}(1)$。</p>" },
+        { "type": "代码", "code": "n <- 10000\nset.seed(123)\n\n# 目标：∫_1^∞ x^2 · φ(x) dx，φ(x) = dnorm(x)\n# 重要性函数 g(x) = e^{-(x-1)}，x ≥ 1\n# 从 g 抽样：Y = 1 + rexp(n, 1)\n\ny <- 1 + rexp(n, 1)            # 从 g(x) 抽样，x ≥ 1\n\n# 重要抽样：θ = E_g[h(Y) · f(Y) / g(Y)]\n# 其中 f(Y) = Y^2 · dnorm(Y)，g(Y) = exp(-(Y - 1))\nw <- y^2 * dnorm(y) / exp(-(y - 1))\n\ntheta     <- mean(w)\nvar_theta <- var(w) / n\ncat(\"重要抽样估计：\", theta, \"\\n\")\ncat(\"方差：\",         var_theta, \"\\n\")\n\n# 验证：理论值\ntrue_val <- integrate(function(x) x^2 * dnorm(x), 1, Inf)$value\ncat(\"理论值：\", true_val, \"\\n\")" },
+        { "type": "提示", "html": "<b>重要抽样的关键：</b>选 $g(x)$ 使得 $f(x)/g(x)$ 尽可能平坦（接近常数），这样方差最小。<br><b>常见的 $g(x)$ 选择：</b>截断正态、指数分布、$t$ 分布（尾部更厚）。" }
+      ]
+    }
+  ]
+}

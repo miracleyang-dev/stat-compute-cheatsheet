@@ -1,0 +1,11 @@
+[
+  { "id": "ch1",  "nav": "Ch1 R语言基础与数据操作",        "file": "ch1.json"  },
+  { "id": "ch2",  "nav": "Ch2 随机变量生成",                "file": "ch2.json"  },
+  { "id": "ch3",  "nav": "Ch3 蒙特卡罗积分",                "file": "ch3.json"  },
+  { "id": "ch4",  "nav": "Ch4 蒙特卡罗推断",                "file": "ch4.json"  },
+  { "id": "ch5",  "nav": "Ch5 Bootstrap 与 Jackknife",      "file": "ch5.json"  },
+  { "id": "ch6",  "nav": "Ch6 数值优化方法",                "file": "ch6.json"  },
+  { "id": "ch7",  "nav": "Ch7 MCMC 方法",                   "file": "ch7.json"  },
+  { "id": "sup1", "nav": "补充：测验 & 附加题",             "file": "sup1.json" },
+  { "id": "sup2", "nav": "补充：工具函数库 (toolkit)",      "file": "sup2.json" }
+]

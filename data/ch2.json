@@ -1,0 +1,76 @@
+{
+  "id": "ch2",
+  "title": "第 2 章 随机变量生成",
+  "tag": "6 题",
+  "knowledge": [
+    "<b>逆变换法</b>：若 $U \\sim U(0,1)$，则 $X = F^{-1}(U)$ 服从 CDF 为 $F$ 的分布。步骤：① 求 CDF；② 求逆函数；③ 生成 $U$；④ 计算 $X=F^{-1}(U)$",
+    "<b>接受—拒绝法</b>：从易抽样的 $g(x)$ 生成候选值，以概率 $\\frac{f(x)}{c\\,g(x)}$ 接受。$c = \\max_x \\frac{f(x)}{g(x)}$。适用于密度已知但 CDF 难求逆的情况",
+    "<b>变换法</b>：利用已知分布间的数学关系。如：若 $Z \\sim N(0,1)$，则 $X = e^{\\mu + \\sigma Z} \\sim \\text{LN}(\\mu, \\sigma^2)$",
+    "<b>混合分布</b>：先以概率 $p$ 选择成分，再从该成分抽样。如 $p\\,N(0,1) + (1-p)\\,N(3,1)$",
+    "<b>多元正态</b>：$\\mathbf{X} = \\boldsymbol{\\mu} + A\\mathbf{Z}$，其中 $\\mathbf{Z} \\sim N(\\mathbf{0}, I)$，$\\Sigma = AA^\\top$。三种分解：Cholesky、特征值、SVD"
+  ],
+  "formulas": [
+    {
+      "title": "Pareto$(a, b)$ 分布",
+      "body": "CDF：$F(x) = 1 - \\left(\\frac{b}{x}\\right)^a,\\quad x \\geq b > 0,\\; a > 0$<br>逆变换：$F^{-1}(u) = b\\,(1-u)^{-1/a}$"
+    },
+    {
+      "title": "接受—拒绝法框架",
+      "body": "1. 找包络分布 $g(x)$，使得 $f(x) \\leq c \\cdot g(x)$ 对所有 $x$ 成立<br>2. 循环：从 $g(x)$ 抽 $Y$，从 $U(0,1)$ 抽 $U$，若 $U \\leq \\frac{f(Y)}{c\\,g(Y)}$ 则接受 $Y$<br>接受率 $= 1/c$，$c$ 越小效率越高"
+    }
+  ],
+  "problems": [
+    {
+      "title": "题 1：逆变换法 — Pareto 分布",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 推导 $\\text{Pareto}(a,b)$ 的逆变换；(2) 生成 $n=1000$ 的 $\\text{Pareto}(2,2)$ 样本；(3) 画密度直方图与理论密度对比。</p>" },
+        { "type": "推导", "html": "<p>$F(x) = 1 - (b/x)^a$，令 $u = F(x)$，解 $x$：</p><p>$u = 1 - (b/x)^a \\;\\Rightarrow\\; (b/x)^a = 1-u \\;\\Rightarrow\\; x = b\\,(1-u)^{-1/a}$</p>" },
+        { "type": "代码", "code": "# Pareto 分布的逆变换\nrpareto <- function(n, a, b) {\n  u <- runif(n)\n  x <- b * (1 - u)^(-1 / a)   # 逆变换公式\n  return(x)\n}\n\n# 生成 Pareto(2,2) 样本\nset.seed(123)\nx <- rpareto(1000, a = 2, b = 2)\n\n# Pareto(2,2) 的密度函数：f(x) = a * b^a / x^(a+1)\ndpareto <- function(x, a, b) {\n  a * b^a / x^(a + 1)\n}\n\n# 画密度直方图 + 理论密度曲线\nhist(x, breaks = 50, prob = TRUE, xlim = c(2, 20),\n     main = \"Pareto(2,2) 逆变换法\", xlab = \"x\")\ncurve(dpareto(x, 2, 2), add = TRUE, col = \"red\", lwd = 2)" }
+      ]
+    },
+    {
+      "title": "题 2：逆变换法 — 离散分布",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 逆变换法生成服从给定分布律的样本；(2) 使用 <code>sample</code> 函数；(3) 比较频率与理论概率。</p>" },
+        { "type": "知识点", "html": "<p>离散逆变换：计算累积概率 $F(x_k) = \\sum_{i \\leq k} p_i$，$U$ 落在哪个区间就取哪个值。</p>" },
+        { "type": "代码", "code": "# 假设分布律：X 取 0, 1, 2, 3, 4，概率为 0.1, 0.2, 0.2, 0.2, 0.3\nvals  <- 0:4\nprobs <- c(0.1, 0.2, 0.2, 0.2, 0.3)\ncp    <- cumsum(probs)   # 累积概率：0.1, 0.3, 0.5, 0.7, 1.0\n\n# (1) 逆变换法\nn  <- 1000\nu  <- runif(n)\nx1 <- numeric(n)\nfor (i in 1:n) {\n  x1[i] <- vals[min(which(u[i] <= cp))]   # U 落在哪个区间\n}\n\n# (2) sample 函数（更简洁）\nx2 <- sample(vals, size = 1000, replace = TRUE, prob = probs)\n\n# (3) 频数表对比\ntab1 <- table(x1) / n   # 逆变换法的经验概率\ntab2 <- table(x2) / n   # sample 的经验概率\ncbind(理论概率 = probs,\n      逆变换法 = as.numeric(tab1),\n      sample法 = as.numeric(tab2))" },
+        { "type": "提示", "html": "<code>sample()</code> 是 R 内置的离散抽样函数，<code>replace=TRUE</code> 表示有放回抽样。考试中优先用 <code>sample()</code>，代码更短。" }
+      ]
+    },
+    {
+      "title": "题 3：接受—拒绝法 — Beta 分布",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 写接受—拒绝法生成 $\\text{Beta}(a,b)$ 样本的 R 函数；(2) 生成 $\\text{Beta}(3,2)$ 样本；(3) 直方图 + 理论密度。</p>" },
+        { "type": "推导", "html": "<p>$\\text{Beta}(a,b)$ 定义在 $[0,1]$ 上。用均匀分布 $U(0,1)$ 做包络，$g(x)=1$，$c = \\max_x f(x) = f(\\text{mode})$，其中 $\\text{mode} = \\frac{a-1}{a+b-2}$（要求 $a,b > 1$）。</p>" },
+        { "type": "代码", "code": "rbeta_ar <- function(n, a, b) {\n  # Beta(a,b) 密度：f(x) = x^(a-1) * (1-x)^(b-1) / B(a,b)\n  # 包络：g(x) = 1（均匀分布），c = max f(x)\n\n  # 找最大值点：mode = (a-1) / (a+b-2)\n  mode_x <- (a - 1) / (a + b - 2)\n  c <- dbeta(mode_x, a, b)        # c = f(mode)\n\n  samples <- numeric(n)\n  count   <- 0\n  while (count < n) {\n    y <- runif(1)                 # 从 g(x) = Uniform(0,1) 抽候选值\n    u <- runif(1)                 # 接受概率的随机数\n    if (u <= dbeta(y, a, b) / c) {\n      count <- count + 1\n      samples[count] <- y\n    }\n  }\n  return(samples)\n}\n\n# 生成 Beta(3,2) 样本\nset.seed(123)\nx <- rbeta_ar(1000, a = 3, b = 2)\n\n# 直方图 + 理论密度\nhist(x, breaks = 30, prob = TRUE, main = \"Beta(3,2) 接受—拒绝法\")\ncurve(dbeta(x, 3, 2), add = TRUE, col = \"red\", lwd = 2)" },
+        { "type": "提示", "html": "接受率 $= 1/c$。$c$ 越大，拒绝越多，效率越低。选好的包络分布很重要！" }
+      ]
+    },
+    {
+      "title": "题 4：变换法 — 对数正态分布",
+      "sections": [
+        { "type": "题目", "html": "<p>(1) 写变换法生成 $\\text{LN}(\\mu, \\sigma^2)$ 样本的函数；(2) 生成样本；(3) 直方图 + 密度。</p>" },
+        { "type": "知识点", "html": "<p>若 $Z \\sim N(0,1)$，则 $X = e^{\\mu + \\sigma Z} \\sim \\text{LN}(\\mu, \\sigma^2)$。即：先生成正态，再取指数。</p>" },
+        { "type": "代码", "code": "rlnorm_trans <- function(n, mu, sigma) {\n  z <- rnorm(n)                # 标准正态样本\n  x <- exp(mu + sigma * z)     # 变换为对数正态\n  return(x)\n}\n\n# 生成 LN(0,1) 样本\nset.seed(123)\nx <- rlnorm_trans(1000, mu = 0, sigma = 1)\n\n# 直方图 + 理论密度\nhist(x, breaks = 50, prob = TRUE, xlim = c(0, 10),\n     main = \"对数正态 LN(0,1)\")\ncurve(dlnorm(x, 0, 1), add = TRUE, col = \"red\", lwd = 2)" }
+      ]
+    },
+    {
+      "title": "题 5：混合正态分布",
+      "sections": [
+        { "type": "题目", "html": "<p>生成 1000 个服从 $p\\,N(0,1) + (1-p)\\,N(3,1)$ 的样本，$p = 0.1, 0.3, 0.5, 0.7, 0.9$。</p>" },
+        { "type": "推导", "html": "<p>混合分布 = 先掷\"硬币\"选成分，再从该成分抽样。</p>" },
+        { "type": "代码", "code": "rmix <- function(n, p) {\n  # 每个样本：以概率 p 从 N(0,1) 抽，以概率 1-p 从 N(3,1) 抽\n  k <- rbinom(n, 1, p)         # k=1 选 N(0,1)，k=0 选 N(3,1)\n  x <- ifelse(k == 1, rnorm(n, 0, 1), rnorm(n, 3, 1))\n  return(x)\n}\n\n# 对不同 p 值画密度图\npar(mfrow = c(2, 3))           # 2 行 3 列子图\nfor (p in c(0.1, 0.3, 0.5, 0.7, 0.9)) {\n  set.seed(123)\n  x <- rmix(1000, p)\n  hist(x, breaks = 30, prob = TRUE, main = paste(\"p =\", p))\n  # 叠加理论密度\n  curve(p * dnorm(x, 0, 1) + (1 - p) * dnorm(x, 3, 1),\n        add = TRUE, col = \"red\", lwd = 2)\n}" },
+        { "type": "提示", "html": "<code>rbinom(n, 1, p)</code> 生成 $n$ 个 0/1 值，概率 $p$ 取 1 —— 这是选择成分的\"硬币\"。混合分布在 $p$ 接近 0.5 时可能呈现双峰。" }
+      ]
+    },
+    {
+      "title": "题 6：多元正态分布 — 三种分解法（函数封装风格）",
+      "sections": [
+        { "type": "题目", "html": "<p>用 Cholesky / 特征值 / SVD 三种方法封装为独立函数 <code>rmvn.eigen / rmvn.svd / rmvn.choleski</code>，生成 200 个三维多元正态样本，$\\boldsymbol{\\mu} = (0,1,2)^\\top$，给定协方差矩阵 $\\Sigma$。</p>" },
+        { "type": "知识点", "html": "<p>$\\mathbf{X} = \\boldsymbol{\\mu} + \\mathbf{Z}\\,R$，其中 $\\mathbf{Z} \\sim N(\\mathbf{0}, I)$，$R$ 由 $\\Sigma$ 分解得到（满足 $R^\\top R = \\Sigma$ 或 $RR^\\top = \\Sigma$，具体形式因方法而异）。</p>" },
+        { "type": "代码", "code": "set.seed(134)\nn  <- 200\nmu <- c(0, 1, 2)\ndata <- c( 1.0, -0.5,  0.5,\n          -0.5,  1.0, -0.5,\n           0.5, -0.5,  1.0)\nSigma <- matrix(data, 3, 3, byrow = TRUE)\n\n# === 方法 1：特征值分解 ===\nrmvn.eigen <- function(n, mu, Sigma) {\n  d <- length(mu)\n  ev <- eigen(Sigma, symmetric = TRUE)\n  lambda <- ev$values\n  V <- ev$vectors\n  R <- V %*% diag(sqrt(lambda)) %*% t(V)         # Σ^{1/2}\n  Z <- matrix(rnorm(n * d), nrow = n, ncol = d)\n  X <- Z %*% R + matrix(mu, n, d, byrow = TRUE)\n  return(X)\n}\n\n# === 方法 2：SVD 分解 ===\nrmvn.svd <- function(n, mu, Sigma) {\n  d <- length(mu)\n  S <- svd(Sigma)\n  R <- S$u %*% diag(sqrt(S$d)) %*% t(S$v)\n  Z <- matrix(rnorm(n * d), nrow = n, ncol = d)\n  X <- Z %*% R + matrix(mu, n, d, byrow = TRUE)\n  return(X)\n}\n\n# === 方法 3：Cholesky 分解 ===\nrmvn.choleski <- function(n, mu, Sigma) {\n  d <- length(mu)\n  Q <- chol(Sigma)                                # Σ = Q'Q（Q 上三角）\n  Z <- matrix(rnorm(n * d), nrow = n, ncol = d)\n  X <- Z %*% Q + matrix(mu, n, d, byrow = TRUE)\n  return(X)\n}\n\nans_eigen    <- rmvn.eigen(n, mu, Sigma)\nans_svd      <- rmvn.svd(n, mu, Sigma)\nans_choleski <- rmvn.choleski(n, mu, Sigma)\n\n# 画散点图矩阵对比\npairs(ans_eigen,    main = \"特征值分解\")\npairs(ans_svd,      main = \"SVD 分解\")\npairs(ans_choleski, main = \"Cholesky 分解\")" },
+        { "type": "提示", "html": "三种分解本质都是找 $R$ 使 $\\mathbf{Z}R$ 的协方差等于 $\\Sigma$：<br>- <b>特征值 / SVD</b>：$R = V\\sqrt{\\Lambda}V^\\top$（对称矩阵 $\\Sigma^{1/2}$，最直观）<br>- <b>Cholesky</b>：$R = Q$（上三角），<code>chol()</code> 返回上三角 $Q$ 满足 $\\Sigma = Q^\\top Q$ —— 最快，要求 $\\Sigma$ 正定" }
+      ]
+    }
+  ]
+}
